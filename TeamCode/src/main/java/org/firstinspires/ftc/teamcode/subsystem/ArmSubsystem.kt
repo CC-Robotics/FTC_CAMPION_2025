@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 
 // Leave the suppression until we integrate... Android studio will complain
 @Suppress("unused")
-class ArmSubsystem constructor(hardwareMap: HardwareMap): SubsystemBase() {
+class ArmSubsystem(hardwareMap: HardwareMap): SubsystemBase() {
     private val upperJoint: Motor = Motor(hardwareMap, "armUpper")
     private val lowerJoint: Motor = Motor(hardwareMap, "armLower")
 
