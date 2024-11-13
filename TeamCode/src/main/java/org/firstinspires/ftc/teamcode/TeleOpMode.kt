@@ -10,32 +10,38 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 * !! WARNING:
 * If you were not given an instruction or assigned a responsibility for the bot, please
 * do NOT modify any of the code below or for any other files.
-*
-* The drivetrain is currently commented out as the control hub is not attached to the main bot.
 * */
 
 @TeleOp(name = "Campion TeleOp 2024-25", group = "Linear OpMode")
-abstract class TeleOpMode : LinearOpMode() {
-//    private val fL = Motor(hardwareMap, "fL")
-//    private val fR = Motor(hardwareMap, "fR")
-//    private val bL = Motor(hardwareMap, "bL")
-//    private val bR = Motor(hardwareMap, "bR")
+class TeleOpMode : LinearOpMode() {
+
+    // Drivetrain
+    private val fL by lazy { Motor(hardwareMap, "fL") }
+    private val fR by lazy { Motor(hardwareMap, "fR") }
+    private val bL by lazy { Motor(hardwareMap, "bL") }
+    private val bR by lazy { Motor(hardwareMap, "bR") }
+
+    // Arm
+    private val rightLift by lazy { Motor(hardwareMap, "right_lift") }
+    private val leftLift by lazy { Motor(hardwareMap, "left_lift") }
+    private val slide by lazy { Motor(hardwareMap, "slide") }
+
     override fun runOpMode() {
         telemetry.addData("Status", "Initialized")
         telemetry.update()
 
-//        val drive = MecanumDrive(fL, fR, bL, bR);
+        val drive = MecanumDrive(fL, fR, bL, bR);
         val driverOp = GamepadEx(gamepad1)
 
         waitForStart()
 
         while (opModeIsActive()) {
             // Runtime here...
-//            drive.driveRobotCentric(
-//                driverOp.leftX,
-//                driverOp.leftY,
-//                driverOp.rightY
-//            );
+            drive.driveRobotCentric(
+                driverOp.leftX,
+                driverOp.leftY,
+                driverOp.rightY
+            );
             telemetry.update()
         }
     }
