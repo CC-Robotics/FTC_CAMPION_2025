@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode
-
-import com.arcrobotics.ftclib.drivebase.MecanumDrive
-import com.arcrobotics.ftclib.gamepad.GamepadEx
-import com.arcrobotics.ftclib.hardware.motors.Motor
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import dev.frozenmilk.mercurial.Mercurial
+import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 
 /*
 * !! WARNING:
@@ -12,37 +13,22 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 * do NOT modify any of the code below or for any other files.
 * */
 
-@TeleOp(name = "Campion TeleOp 2024-25", group = "Linear OpMode")
-class TeleOpMode : LinearOpMode() {
-
-    // Drivetrain
-    private val fL by lazy { Motor(hardwareMap, "fL") }
-    private val fR by lazy { Motor(hardwareMap, "fR") }
-    private val bL by lazy { Motor(hardwareMap, "bL") }
-    private val bR by lazy { Motor(hardwareMap, "bR") }
-
-    // Arm
-    private val rightLift by lazy { Motor(hardwareMap, "right_lift") }
-    private val leftLift by lazy { Motor(hardwareMap, "left_lift") }
-    private val slide by lazy { Motor(hardwareMap, "slide") }
-
-    override fun runOpMode() {
+@Mercurial.Attach
+@DrivetrainSubsystem.Attach
+@ClawSubsystem.Attach
+@LiftPIDFSubsystem.Attach
+@TeleOp(name = "Campion TeleOp 2024-25 (2)", group = "Linear OpMode")
+class TeleOpMode : OpMode() {
+    override fun init() {
         telemetry.addData("Status", "Initialized")
         telemetry.update()
 
-        val drive = MecanumDrive(fL, fR, bL, bR);
-        val driverOp = GamepadEx(gamepad1)
+        Mercurial.gamepad1.a.onTrue(ClawSubsystem.open(telemetry))
+        Mercurial.gamepad1.b.onTrue(ClawSubsystem.close(telemetry))
 
-        waitForStart()
-
-        while (opModeIsActive()) {
-            // Runtime here...
-            drive.driveRobotCentric(
-                driverOp.leftX,
-                driverOp.leftY,
-                driverOp.rightY
-            );
-            telemetry.update()
-        }
+        Mercurial.gamepad1.dpadUp.onTrue(LiftSubsystem.goUp(telemetry))
+        Mercurial.gamepad1.dpadDown.onTrue(LiftSubsystem.goDown(telemetry))
     }
+
+    override fun loop() {}
 }
