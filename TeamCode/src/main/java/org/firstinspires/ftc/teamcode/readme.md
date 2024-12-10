@@ -51,11 +51,11 @@ Classname:
 [Alliance][Auto/Tele][Function/Description]
 
 Name:
-[Alliance] | [Auto/Tele] (- [Driver]) | [Function/Description]
+[Alliance] | [Auto/Tele] - [Driver|N/A] | [Function/Description]
 ```
 
 e.g. RedAutoMain
-Red | Auto | Main
+Red | Auto - N/A | Main
 
 BlueTeleMain
 Blue | Auto - Rithvik | Main
