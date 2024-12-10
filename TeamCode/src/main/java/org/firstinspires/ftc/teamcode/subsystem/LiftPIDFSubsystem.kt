@@ -28,6 +28,7 @@ object LiftPIDFSubsystem : SubsystemCore() {
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100
+    private const val TELEMETRY_KEY = "Lift position"
 
     override fun periodic(opMode: Wrapper) {
         val leftPower = PIDFController.calculate(leftLift.currentPosition.toDouble(), position.toDouble())
@@ -39,22 +40,22 @@ object LiftPIDFSubsystem : SubsystemCore() {
 
     @Suppress("unused")
     fun goUp(telemetry: Telemetry): Lambda {
-        return Lambda("Go Up")
+        return Lambda("Lift go Up")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
                 position += INCREMENT
-                telemetry.addData("Pos", position)
+                telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
     }
 
     @Suppress("unused")
     fun goDown(telemetry: Telemetry): Lambda {
-        return Lambda("Go Down")
+        return Lambda("Lift go down")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
                 position -= INCREMENT
-                telemetry.addData("Pos", position)
+                telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
     }

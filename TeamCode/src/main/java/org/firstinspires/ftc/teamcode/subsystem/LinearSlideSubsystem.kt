@@ -11,7 +11,8 @@ import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 import kotlin.math.max
 
-object LiftSubsystem : SubsystemCore() {
+@Suppress("unused")
+object LinearSlideSubsystem : SubsystemCore() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
@@ -21,43 +22,43 @@ object LiftSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val rightLift by getHardware<DcMotorEx>("right_lift")
-    private val leftLift by getHardware<DcMotorEx>("left_lift")
+    private val slide by getHardware<DcMotorEx>("slide")
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100
+    private const val TELEMETRY_KEY = "Linear slide position"
 
     override fun init(opMode: Wrapper) {
         updatePosition()
-        rightLift.power = 1.0
-        leftLift.power = 1.0
+        slide.power = 1.0
     }
 
+    @Suppress("unused")
     fun goUp(telemetry: Telemetry): Lambda {
-        return Lambda("Lift go Up")
-            .addRequirements(LiftSubsystem)
+        return Lambda("Linear slide up")
+            .addRequirements(LinearSlideSubsystem)
             .addExecute {
                 position += INCREMENT
                 updatePosition()
-                telemetry.addData("Pos", position)
+                telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
     }
 
+    @Suppress("unused")
     fun goDown(telemetry: Telemetry): Lambda {
-        return Lambda("Lift go Down")
-            .addRequirements(LiftSubsystem)
+        return Lambda("Linear slide down")
+            .addRequirements(LinearSlideSubsystem)
             .addExecute {
                 position -= INCREMENT
                 position = max(0, position)
                 updatePosition()
-                telemetry.addData("Pos", position)
+                telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
     }
 
     private fun updatePosition() {
-        leftLift.targetPosition = position
-        rightLift.targetPosition = position
+        slide.targetPosition = position
     }
 }

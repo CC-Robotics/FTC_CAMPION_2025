@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
 /*
 * !! WARNING:
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 @DrivetrainSubsystem.Attach
 @ClawSubsystem.Attach
 @LiftPIDFSubsystem.Attach
+@LinearSlidePIDFSubsystem.Attach
 @TeleOp(name = "Red | Tele - N/A | Main", group = "2024-25 OpCodes")
 class RedTeleMain : OpMode() {
     override fun init() {
@@ -28,6 +30,9 @@ class RedTeleMain : OpMode() {
 
         Mercurial.gamepad1.dpadUp.onTrue(LiftSubsystem.goUp(telemetry))
         Mercurial.gamepad1.dpadDown.onTrue(LiftSubsystem.goDown(telemetry))
+
+        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.goUp(telemetry))
+        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.goDown(telemetry))
     }
 
     override fun loop() {}
