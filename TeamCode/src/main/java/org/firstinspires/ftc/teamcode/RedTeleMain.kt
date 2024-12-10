@@ -17,8 +17,8 @@ import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 @DrivetrainSubsystem.Attach
 @ClawSubsystem.Attach
 @LiftPIDFSubsystem.Attach
-@TeleOp(name = "Campion TeleOp 2024-25 (2)", group = "Linear OpMode")
-class TeleOpMode : OpMode() {
+@TeleOp(name = "Red | Tele - N/A | Main", group = "2024-25 OpCodes")
+class RedTeleMain : OpMode() {
     override fun init() {
         telemetry.addData("Status", "Initialized")
         telemetry.update()

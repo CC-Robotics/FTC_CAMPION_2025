@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 * The drivetrain is currently commented out as the control hub is not attached to the main bot.
 * */
 
-@Autonomous(name = "Campion Autonomous 2024-25", group = "Linear OpMode")
-abstract class AutoOpMode : LinearOpMode() {
+@Autonomous(name = "Red | Auto - N/A | Main", group = "2024-25 OpCodes")
+abstract class RedAutoMain : LinearOpMode() {
 //    private val fL = Motor(hardwareMap, "fL")
 //    private val fR = Motor(hardwareMap, "fR")
 //    private val bL = Motor(hardwareMap, "bL")
