@@ -9,7 +9,6 @@ import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
-import kotlin.math.max
 
 @Suppress("unused")
 object LinearSlideSubsystem : SubsystemCore() {
@@ -51,7 +50,6 @@ object LinearSlideSubsystem : SubsystemCore() {
             .addRequirements(LinearSlideSubsystem)
             .addExecute {
                 position -= INCREMENT
-                position = max(0, position)
                 updatePosition()
                 telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
