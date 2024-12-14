@@ -24,7 +24,7 @@ object LiftPIDFSubsystem : SubsystemCore() {
     private val rightLift by getHardware<DcMotorEx>("right_lift")
     private val leftLift by getHardware<DcMotorEx>("left_lift")
 
-    private val PIDFController = PIDFController(0.1, 0.0, 0.0, 0.0)
+    private val PIDFController = PIDFController(0.02, 0.0, 0.0, 0.0)
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100

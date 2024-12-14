@@ -23,7 +23,7 @@ object LinearSlidePIDFSubsystem : SubsystemCore() {
 
     private val slide by getHardware<DcMotorEx>("slide")
 
-    private val PIDFController = PIDFController(0.02, 0.0, 0.0, 0.0)
+    private val PIDFController = PIDFController(0.1, 0.0, 0.0, 0.0)
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100
