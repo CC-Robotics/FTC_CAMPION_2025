@@ -49,6 +49,16 @@ object LiftPIDFSubsystem : SubsystemCore() {
             }
     }
 
+    fun changeProportional(telemetry: Telemetry, multiplier: Int = 1): Lambda {
+        return Lambda("Change lift Proportional")
+            .addRequirements(LiftPIDFSubsystem)
+            .addExecute {
+                PIDFController.p += (0.01 * multiplier)
+                telemetry.addData("(Lift) Proportional", PIDFController.p)
+                telemetry.update()
+            }
+    }
+
     @Suppress("unused")
     fun goDown(telemetry: Telemetry): Lambda {
         return Lambda("Lift go down")
