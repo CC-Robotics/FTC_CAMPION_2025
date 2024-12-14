@@ -10,7 +10,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
-import kotlin.math.max
 
 object LinearSlidePIDFSubsystem : SubsystemCore() {
     @Target(AnnotationTarget.CLASS)
@@ -52,7 +51,6 @@ object LinearSlidePIDFSubsystem : SubsystemCore() {
             .addRequirements(LinearSlidePIDFSubsystem)
             .addExecute {
                 position -= INCREMENT
-                position = max(0, position)
                 telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
