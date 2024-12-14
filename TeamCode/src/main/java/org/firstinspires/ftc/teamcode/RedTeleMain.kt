@@ -34,8 +34,8 @@ class RedTeleMain : OpMode() {
         Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.goUp(telemetry))
         Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.goDown(telemetry))
 
-        Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeProportional(telemetry, -1))
-        Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeProportional(telemetry, 1))
+        Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
+        Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))
     }
 
     override fun loop() {}

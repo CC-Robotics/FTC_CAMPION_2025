@@ -49,13 +49,23 @@ object LiftPIDFSubsystem : SubsystemCore() {
             }
     }
 
-    fun changeProportional(telemetry: Telemetry, multiplier: Int = 1): Lambda {
+    fun changeDerivative(telemetry: Telemetry, multiplier: Int = 1): Lambda {
         return Lambda("Change lift Proportional")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
-                PIDFController.p += (0.01 * multiplier)
-                telemetry.addData("(Lift) Proportional", PIDFController.p)
+                PIDFController.d += (0.01 * multiplier)
+                telemetry.addData("(Lift) Derivative", PIDFController.d)
                 telemetry.update()
             }
     }
+
+//    fun changeProportional(telemetry: Telemetry, multiplier: Int = 1): Lambda {
+//        return Lambda("Change lift Proportional")
+//            .addRequirements(LiftPIDFSubsystem)
+//            .addExecute {
+//                PIDFController.p += (0.01 * multiplier)
+//                telemetry.addData("(Lift) Proportional", PIDFController.p)
+//                telemetry.update()
+//            }
+//    }
 }
