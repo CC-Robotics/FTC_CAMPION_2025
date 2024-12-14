@@ -38,19 +38,18 @@ object LiftPIDFSubsystem : SubsystemCore() {
         rightLift.power = rightPower
     }
 
-    @Suppress("unused")
     fun changePosition(telemetry: Telemetry, multiplier: Int = 1): Lambda {
-        return Lambda("Change lift position")
+        return Lambda("Change PIDF lift position")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
-                position -= (INCREMENT * multiplier)
+                position += (INCREMENT * multiplier)
                 telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
     }
 
     fun changeDerivative(telemetry: Telemetry, multiplier: Int = 1): Lambda {
-        return Lambda("Change lift Proportional")
+        return Lambda("Change PIDF lift Proportional")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
                 PIDFController.d += (0.01 * multiplier)
