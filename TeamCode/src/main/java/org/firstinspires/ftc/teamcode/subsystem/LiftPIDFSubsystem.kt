@@ -43,7 +43,7 @@ object LiftPIDFSubsystem : SubsystemCore() {
         return Lambda("Change lift position")
             .addRequirements(LiftPIDFSubsystem)
             .addExecute {
-                position += (INCREMENT * multiplier)
+                position -= (INCREMENT * multiplier)
                 telemetry.addData(TELEMETRY_KEY, position)
                 telemetry.update()
             }
