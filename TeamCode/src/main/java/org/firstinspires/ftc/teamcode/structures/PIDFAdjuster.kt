@@ -7,33 +7,34 @@ import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
-object PIDFAdjuster {
-    fun attach(telemetry: Telemetry, gamepad: BoundGamepad) {
-        var enabled = false
+class PIDFAdjuster(val telemetry: Telemetry, val gamepad: BoundGamepad) {
+    var enabled = false
 
-        var currentSystem = 0
-        val systems = listOf(LiftPIDFSubsystem, LinearSlidePIDFSubsystem)
+    var currentSystem = 0
+    val systems = listOf(LiftPIDFSubsystem, LinearSlidePIDFSubsystem)
 
-        var currentModifier = 0
-        val modifiers = listOf("p", "i", "d", "f")
+    var currentModifier = 0
+    val modifiers = listOf("p", "i", "d", "f")
 
-        fun updateTelemetry() {
-            telemetry.addData(
-                "PIDF Adjuster", "On (${systems[currentSystem].subsystemName} | ${
-                    PIDFController.nameMap[modifiers[currentModifier]]
-                })"
-            )
-            telemetry.addData(
-                "PIDF Adjuster Value",
-                "(${
-                    PIDFController.getPIDFValue(
-                        systems[currentSystem].pidfController,
-                        modifiers[currentModifier]
-                    )
-                })"
-            )
-            telemetry.update()
-        }
+    fun updateTelemetry() {
+        telemetry.addData(
+            "PIDF Adjuster", "On (${systems[currentSystem].subsystemName} | ${
+                PIDFController.nameMap[modifiers[currentModifier]]
+            })"
+        )
+        telemetry.addData(
+            "PIDF Adjuster Value",
+            "(${
+                PIDFController.getPIDFValue(
+                    systems[currentSystem].pidfController,
+                    modifiers[currentModifier]
+                )
+            })"
+        )
+        telemetry.update()
+    }
+
+    fun attach() {
 
         gamepad.a.onTrue(Lambda("PIDF Adjuster Toggle").addExecute {
             enabled = !enabled

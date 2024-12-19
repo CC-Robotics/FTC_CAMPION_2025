@@ -19,7 +19,7 @@ open class PIDFSubsystem : SubsystemCore() {
     open fun adjustPIDFValue(value: String = "p", multiplier: Int = 1): Lambda {
         val name = PIDFController.nameMap[value]
         return Lambda("Change $subsystemName PIDF: $name")
-            .addRequirements(javaClass)
+            .addRequirements(this::class.java)
             .addExecute {
                 PIDFController.adjustPIDF(pidfController, value, PIDFController.DEFAULT_INCREMENT * multiplier)
             }
@@ -27,11 +27,9 @@ open class PIDFSubsystem : SubsystemCore() {
 
     open fun changePosition(telemetry: Telemetry, multiplier: Int = 1): Lambda {
         return Lambda("Change $subsystemName position")
-            .addRequirements(javaClass)
+            .addRequirements(this::class.java)
             .addExecute {
                 position += (increment * multiplier)
-                telemetry.addData("$subsystemName Position", position)
-                telemetry.update()
             }
     }
 }

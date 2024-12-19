@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 @LinearSlidePIDFSubsystem.Attach
 @TeleOp(name = "Red | Tele - N/A | Main", group = "2024-25 OpCodes")
 class RedTeleMain : OpMode() {
+    private lateinit var pidfAdjuster: PIDFAdjuster
     override fun init() {
         telemetry.addData("Status", "Initialized")
         telemetry.update()
@@ -37,8 +38,11 @@ class RedTeleMain : OpMode() {
         //Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
         //Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))
 
-        PIDFAdjuster.attach(telemetry, Mercurial.gamepad2)
+        pidfAdjuster = PIDFAdjuster(telemetry, Mercurial.gamepad2)
+        pidfAdjuster.attach()
     }
 
-    override fun loop() {}
+    override fun loop() {
+        pidfAdjuster.updateTelemetry()
+    }
 }

@@ -3,11 +3,12 @@ package org.firstinspires.ftc.teamcode.structures
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
+import dev.frozenmilk.mercurial.subsystems.SDKSubsystem
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import dev.frozenmilk.mercurial.subsystems.SubsystemObjectCell
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem.subsystemCell
 
-open class SubsystemCore : Subsystem {
+open class SubsystemCore : SDKSubsystem() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY
 
     open val subsystemName = this::class.simpleName
