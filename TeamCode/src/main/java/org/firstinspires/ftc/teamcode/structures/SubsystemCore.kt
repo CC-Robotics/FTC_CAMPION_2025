@@ -10,6 +10,8 @@ import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem.subsystemCell
 open class SubsystemCore : Subsystem {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY
 
+    open val subsystemName = this::class.simpleName
+
     companion object {
         inline fun <reified T, reified K> getHardwareAndCast(id: String): SubsystemObjectCell<K> = subsystemCell {
             val hardware = FeatureRegistrar.activeOpMode.hardwareMap.get(T::class.java, id)

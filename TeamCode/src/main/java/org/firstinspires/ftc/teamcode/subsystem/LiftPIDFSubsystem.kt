@@ -8,10 +8,11 @@ import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.controller.PIDFController
+import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 
-object LiftPIDFSubsystem : SubsystemCore() {
+object LiftPIDFSubsystem : PIDFSubsystem() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
@@ -21,50 +22,17 @@ object LiftPIDFSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
+    override val subsystemName = "Lift"
+
     private val rightLift by getHardware<DcMotorEx>("right_lift")
     private val leftLift by getHardware<DcMotorEx>("left_lift")
 
-    private val PIDFController = PIDFController(0.02, 0.0, 0.0, 0.0)
-
-    private var position: Int = 0
-    private const val INCREMENT: Int = 100
-    private const val TELEMETRY_KEY = "Lift position"
-
     override fun periodic(opMode: Wrapper) {
-        val leftPower = PIDFController.calculate(leftLift.currentPosition.toDouble(), position.toDouble())
-        val rightPower = PIDFController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
-
-        leftLift.power = leftPower
-        rightLift.power = rightPower
+        applyPIDF(leftLift)
+        applyPIDF(rightLift)
     }
 
-    fun changePosition(telemetry: Telemetry, multiplier: Int = 1): Lambda {
-        return Lambda("Change PIDF lift position")
-            .addRequirements(LiftPIDFSubsystem)
-            .addExecute {
-                position += (INCREMENT * multiplier)
-                telemetry.addData(TELEMETRY_KEY, position)
-                telemetry.update()
-            }
+    init {
+        pidfController.p = 0.02
     }
-
-    fun changeDerivative(telemetry: Telemetry, multiplier: Int = 1): Lambda {
-        return Lambda("Change PIDF lift Proportional")
-            .addRequirements(LiftPIDFSubsystem)
-            .addExecute {
-                PIDFController.d += (0.01 * multiplier)
-                telemetry.addData("(Lift) Derivative", PIDFController.d)
-                telemetry.update()
-            }
-    }
-
-//    fun changeProportional(telemetry: Telemetry, multiplier: Int = 1): Lambda {
-//        return Lambda("Change lift Proportional")
-//            .addRequirements(LiftPIDFSubsystem)
-//            .addExecute {
-//                PIDFController.p += (0.01 * multiplier)
-//                telemetry.addData("(Lift) Proportional", PIDFController.p)
-//                telemetry.update()
-//            }
-//    }
 }

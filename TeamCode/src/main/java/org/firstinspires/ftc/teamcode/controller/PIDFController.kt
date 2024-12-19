@@ -76,6 +76,41 @@ class PIDFController @JvmOverloads constructor(
     private var minIntegral: Double
     private var maxIntegral = 1.0
 
+    companion object {
+        const val DEFAULT_INCREMENT = 0.01
+
+        val nameMap = mapOf(
+            "p" to "Proportional",
+            "i" to "Integral",
+            "d" to "Derivative",
+            "f" to "Feedforward"
+        )
+
+        fun getPIDFValue(controller: PIDFController, which: String): Double {
+            return when (which) {
+                "p" -> controller.p
+                "i" -> controller.i
+                "d" -> controller.d
+                "f" -> controller.f
+                else -> throw IllegalArgumentException("Invalid value: $which")
+            }
+        }
+
+        fun adjustPIDF(
+            controller: PIDFController,
+            which: String,
+            value: Double = DEFAULT_INCREMENT
+        ): Double {
+            return when (which) {
+                "p" -> controller.p.also { controller.p += value }
+                "i" -> controller.i.also { controller.i += value }
+                "d" -> controller.d.also { controller.d += value }
+                "f" -> controller.f.also { controller.f += value }
+                else -> throw IllegalArgumentException("Invalid value: $value")
+            }
+        }
+    }
+
     /**
      * @return the positional error e(t)
      */

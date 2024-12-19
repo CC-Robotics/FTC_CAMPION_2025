@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
+import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
 /*
@@ -31,11 +32,13 @@ class RedTeleMain : OpMode() {
         Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePosition(telemetry, 1))
         Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePosition(telemetry, -1))
 
-        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.goUp(telemetry))
-        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.goDown(telemetry))
+        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePosition(telemetry))
+        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.changePosition(telemetry, -1))
 
-        Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
-        Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))
+        //Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
+        //Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))
+
+        PIDFAdjuster.attach(telemetry, Mercurial.gamepad2)
     }
 
     override fun loop() {}
