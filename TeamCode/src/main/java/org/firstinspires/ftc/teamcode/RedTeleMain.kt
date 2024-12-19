@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
 import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
@@ -16,7 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 * */
 
 @Mercurial.Attach
-@DrivetrainSubsystem.Attach
+//@DrivetrainSubsystem.Attach
 @ClawSubsystem.Attach
 @LiftPIDFSubsystem.Attach
 @LinearSlidePIDFSubsystem.Attach

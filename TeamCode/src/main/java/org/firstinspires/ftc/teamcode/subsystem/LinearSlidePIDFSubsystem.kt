@@ -25,4 +25,8 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
     override fun periodic(opMode: Wrapper) {
         applyPIDF(slide)
     }
+
+    override fun init(opMode: Wrapper) {
+        position = slide.currentPosition
+    }
 }

@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.controller.PIDFController
 open class PIDFSubsystem : SubsystemCore() {
     open val pidfController = PIDFController(0.00, 0.0, 0.0, 0.0)
 
-    private var position: Int = 0
+    open var position: Int = 0
     open val increment: Int = 100
 
     open fun applyPIDF(motor: DcMotorEx) {

@@ -4,12 +4,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
-import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 
 object LiftPIDFSubsystem : PIDFSubsystem() {
@@ -30,6 +26,10 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
     override fun periodic(opMode: Wrapper) {
         applyPIDF(leftLift)
         applyPIDF(rightLift)
+    }
+
+    override fun init(opMode: Wrapper) {
+        position = rightLift.currentPosition
     }
 
     init {
