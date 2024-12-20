@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.controller
 
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.round
 
 /*
  * How to Tune PIDF Values:
@@ -77,7 +78,11 @@ class PIDFController @JvmOverloads constructor(
     private var maxIntegral = 1.0
 
     companion object {
-        const val DEFAULT_INCREMENT = 0.01
+        private const val DEFAULT_INCREMENT_PROPORTIONAL = 0.001
+        private const val DEFAULT_INCREMENT_INTEGRAL = 0.001
+        private const val DEFAULT_INCREMENT_FEEDFORWARD = 0.0001
+        private const val DEFAULT_INCREMENT_DERIVATIVE = 0.0001
+        const val DEFAULT_INCREMENT = DEFAULT_INCREMENT_PROPORTIONAL
 
         val nameMap = mapOf(
             "p" to "Proportional",
@@ -99,14 +104,23 @@ class PIDFController @JvmOverloads constructor(
         fun adjustPIDF(
             controller: PIDFController,
             which: String,
-            value: Double = DEFAULT_INCREMENT
+            multiplier: Double = 0.0
         ): Double {
             return when (which) {
-                "p" -> controller.p.also { controller.p += value }
-                "i" -> controller.i.also { controller.i += value }
-                "d" -> controller.d.also { controller.d += value }
-                "f" -> controller.f.also { controller.f += value }
-                else -> throw IllegalArgumentException("Invalid value: $value")
+                "p" -> controller.p.also {
+                    controller.p = round((controller.p + (DEFAULT_INCREMENT_PROPORTIONAL * multiplier)) * 1_000) / 1_000
+                }
+
+                "i" -> controller.i.also {
+                    controller.i = round((controller.i + (DEFAULT_INCREMENT_INTEGRAL * multiplier)) * 1_000) / 1_000
+                }
+                "d" -> controller.d.also {
+                    controller.d = round((controller.d + (DEFAULT_INCREMENT_DERIVATIVE * multiplier)) * 10_000) / 10_000
+                }
+                "f" -> controller.f.also {
+                    controller.f = round((controller.f + (DEFAULT_INCREMENT_FEEDFORWARD * multiplier)) * 10_000) / 10_000
+                }
+                else -> throw IllegalArgumentException("Invalid value: $which")
             }
         }
     }

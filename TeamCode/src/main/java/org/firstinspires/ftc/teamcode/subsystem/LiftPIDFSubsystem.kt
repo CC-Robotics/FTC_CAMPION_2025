@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
+import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
 
@@ -36,15 +36,17 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
         rightLift.mode = DcMotor.RunMode.RUN_USING_ENCODER
 
         leftLift.direction = DcMotorSimple.Direction.REVERSE
-        leftLift.direction = DcMotorSimple.Direction.REVERSE
+        rightLift.direction = DcMotorSimple.Direction.REVERSE
     }
 
     override fun periodic(opMode: Wrapper) {
+        changePosition(telemetry, Mercurial.gamepad2.leftStickY.state).execute()
         val power = pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
 
         leftLift.power = power
         rightLift.power = power
 
+        telemetry.addData("Left Stick Y", Mercurial.gamepad2.leftStickY.state)
         telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
         telemetry.addData("Right Lift Real Position", rightLift.currentPosition)
         telemetry.addData("$subsystemName Position", position)
