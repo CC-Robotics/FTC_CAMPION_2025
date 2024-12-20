@@ -25,13 +25,16 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
     private val slide by getHardware<DcMotorEx>("slide")
 
     override fun periodic(opMode: Wrapper) {
-        applyPIDF(slide)
+        pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble()).also {
+            slide.power = it
+        }
         telemetry.addData("Slide Real Position", slide.currentPosition)
         telemetry.addData("$subsystemName} Position", position)
     }
 
     override fun init(opMode: Wrapper) {
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        slide.mode = DcMotor.RunMode.RUN_USING_ENCODER
         slide.direction = DcMotorSimple.Direction.REVERSE
     }
 }

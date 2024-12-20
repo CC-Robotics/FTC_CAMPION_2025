@@ -7,20 +7,21 @@ import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
-class PIDFAdjuster(val telemetry: Telemetry, val gamepad: BoundGamepad) {
-    var enabled = false
+class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundGamepad) {
+    private var enabled = false
 
-    var currentSystem = 0
-    val systems = listOf(LiftPIDFSubsystem, LinearSlidePIDFSubsystem)
+    private var currentSystem = 0
+    private val systems = listOf(LiftPIDFSubsystem, LinearSlidePIDFSubsystem)
 
-    var currentModifier = 0
-    val modifiers = listOf("p", "i", "d", "f")
+    private var currentModifier = 0
+    private val modifiers = listOf("p", "i", "d", "f")
 
     fun updateTelemetry() {
+
         telemetry.addData(
-            "PIDF Adjuster", "On (${systems[currentSystem].subsystemName} | ${
+            "PIDF Adjuster", if (enabled) "On (${systems[currentSystem].subsystemName} | ${
                 PIDFController.nameMap[modifiers[currentModifier]]
-            })"
+            })" else "Off"
         )
         telemetry.addData(
             "PIDF Adjuster Value",

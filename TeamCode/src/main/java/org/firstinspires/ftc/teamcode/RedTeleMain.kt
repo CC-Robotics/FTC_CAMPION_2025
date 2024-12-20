@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
+import dev.frozenmilk.mercurial.commands.Lambda
 import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
@@ -24,12 +25,14 @@ class RedTeleMain : OpMode() {
     private lateinit var pidfAdjuster: PIDFAdjuster
     override fun init() {
         telemetry.addData("Status", "Initialized")
-        telemetry.update()
 
         Mercurial.gamepad1.a.onTrue(ClawSubsystem.open(telemetry))
         Mercurial.gamepad1.b.onTrue(ClawSubsystem.close(telemetry))
 
         Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePosition(telemetry, 1))
+        Mercurial.gamepad1.dpadUp.onTrue(Lambda("Log").setExecute {
+            telemetry.addLine("Dpad Up")
+        })
         Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePosition(telemetry, -1))
 
         Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePosition(telemetry))
@@ -40,6 +43,7 @@ class RedTeleMain : OpMode() {
 
         pidfAdjuster = PIDFAdjuster(telemetry, Mercurial.gamepad2)
         pidfAdjuster.attach()
+        telemetry.update()
     }
 
     override fun loop() {

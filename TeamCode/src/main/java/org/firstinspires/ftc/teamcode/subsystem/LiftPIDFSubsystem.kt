@@ -23,24 +23,32 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Lift"
 
-    override val pidfController = PIDFController(0.001, 0.0, 0.0, 0.0)
-
-
     private val rightLift by getHardware<DcMotorEx>("right_lift")
     private val leftLift by getHardware<DcMotorEx>("left_lift")
 
+    override fun init(opMode: Wrapper) {
+        position = 0
+        pidfController.setPIDF(0.01, 0.0, 0.0, 0.0)
+
+        leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftLift.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        rightLift.mode = DcMotor.RunMode.RUN_USING_ENCODER
+
+        leftLift.direction = DcMotorSimple.Direction.REVERSE
+        leftLift.direction = DcMotorSimple.Direction.REVERSE
+    }
+
     override fun periodic(opMode: Wrapper) {
-        applyPIDF(leftLift)
-        applyPIDF(rightLift)
+        val power = pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
+
+        leftLift.power = power
+        rightLift.power = power
+
         telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
         telemetry.addData("Right Lift Real Position", rightLift.currentPosition)
         telemetry.addData("$subsystemName Position", position)
-    }
-
-    override fun init(opMode: Wrapper) {
-        leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        leftLift.direction = DcMotorSimple.Direction.REVERSE
-        leftLift.direction = DcMotorSimple.Direction.REVERSE
+        telemetry.addData("Left Lift Power (real vs intended)", "${leftLift.power} vs $power")
+        telemetry.addData("Right Lift Power (real vs intended)", "${rightLift.power} vs $power")
     }
 }
