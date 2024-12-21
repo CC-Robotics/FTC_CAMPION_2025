@@ -68,10 +68,10 @@ object FieldCentricDrivetrainSubsystem : SubsystemCore() {
         rotX *= 1.1
 
         val denominator = max(abs(rotY) + abs(rotX) + abs(rx), 1.0)
-        val fLPower = (rotY + rotX + rx) / denominator
-        val bLPower = (rotY - rotX + rx) / denominator
-        val fRPower = (rotY - rotX - rx) / denominator
-        val bRPower = (rotY + rotX - rx) / denominator
+        val fLPower = (rotY + rotX - rx) / denominator
+        val bLPower = (rotY - rotX - rx) / denominator
+        val fRPower = (rotY - rotX + rx) / denominator
+        val bRPower = (rotY + rotX + rx) / denominator
 
         fL.power = fLPower
         bL.power = bLPower

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
+import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
@@ -20,16 +21,17 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    override val subsystemName = "Linear Slide"
+    override val subsystemName = "Slide"
 
     private val slide by getHardware<DcMotorEx>("slide")
 
     override fun periodic(opMode: Wrapper) {
-        pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble()).also {
-            slide.power = it
-        }
-        telemetry.addData("Slide Real Position", slide.currentPosition)
-        telemetry.addData("$subsystemName} Position", position)
+        changePosition(Mercurial.gamepad2.rightStickY.state).execute()
+        val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
+        slide.power = power
+        telemetry.addData("$subsystemName Real Position", slide.currentPosition)
+        telemetry.addData("$subsystemName Position", position)
+        telemetry.addData("$subsystemName Intended Power vs Power", "$power vs ${slide.power}")
     }
 
     override fun init(opMode: Wrapper) {

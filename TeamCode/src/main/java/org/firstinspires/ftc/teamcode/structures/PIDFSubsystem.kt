@@ -21,7 +21,7 @@ open class PIDFSubsystem : SubsystemCore() {
             }
     }
 
-    open fun changePosition(telemetry: Telemetry, multiplier: Double = 1.0): Lambda {
+    open fun changePosition(multiplier: Double = 1.0): Lambda {
         return Lambda("Change $subsystemName position")
             .addRequirements(this::class.java)
             .addExecute {

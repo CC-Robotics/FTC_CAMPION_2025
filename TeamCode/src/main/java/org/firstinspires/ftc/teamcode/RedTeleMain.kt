@@ -29,14 +29,14 @@ class RedTeleMain : OpMode() {
         Mercurial.gamepad1.a.onTrue(ClawSubsystem.open(telemetry))
         Mercurial.gamepad1.b.onTrue(ClawSubsystem.close(telemetry))
 
-        Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePosition(telemetry, 1.0))
+        Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePosition())
         Mercurial.gamepad1.dpadUp.onTrue(Lambda("Log").setExecute {
             telemetry.addLine("Dpad Up")
         })
-        Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePosition(telemetry, -1.0))
+        Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePosition(-1.0))
 
-        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePosition(telemetry))
-        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.changePosition(telemetry, -1.0))
+        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePosition())
+        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.changePosition(-1.0))
 
         //Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
         //Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))

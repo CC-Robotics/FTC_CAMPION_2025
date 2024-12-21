@@ -28,7 +28,7 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
 
     override fun init(opMode: Wrapper) {
         position = 0
-        pidfController.setPIDF(0.01, 0.0, 0.0, 0.0)
+        pidfController.setPIDF(0.003, 0.02, 0.0, 0.025)
 
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -40,7 +40,7 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
     }
 
     override fun periodic(opMode: Wrapper) {
-        changePosition(telemetry, Mercurial.gamepad2.leftStickY.state).execute()
+        changePosition(Mercurial.gamepad2.leftStickY.state).execute()
         val power = pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
 
         leftLift.power = power
