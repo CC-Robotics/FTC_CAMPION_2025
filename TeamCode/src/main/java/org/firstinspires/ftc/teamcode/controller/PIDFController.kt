@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.controller
 
+import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.round
+
+data class PIDFValues(val p: Double, val i: Double, val d: Double, val f: Double)
 
 /*
  * How to Tune PIDF Values:
@@ -298,6 +301,13 @@ class PIDFController @JvmOverloads constructor(
         i = ki
         d = kd
         f = kf
+    }
+
+    fun setPIDF(values: PIDFValues) {
+        p = values.p
+        i = values.i
+        d = values.d
+        f = values.f
     }
 
     fun setIntegrationBounds(integralMin: Double, integralMax: Double) {

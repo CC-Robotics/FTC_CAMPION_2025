@@ -26,9 +26,13 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
     private val slide by getHardware<DcMotorEx>("slide")
 
     override fun periodic(opMode: Wrapper) {
-        changePosition(Mercurial.gamepad2.rightStickY.state).execute()
+        changePosition(Mercurial.gamepad2.rightStickY.state)
         val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
         slide.power = power
+        // telemetry(power)
+    }
+
+    fun telemetry(power: Double) {
         telemetry.addData("$subsystemName Real Position", slide.currentPosition)
         telemetry.addData("$subsystemName Position", position)
         telemetry.addData("$subsystemName Intended Power vs Power", "$power vs ${slide.power}")

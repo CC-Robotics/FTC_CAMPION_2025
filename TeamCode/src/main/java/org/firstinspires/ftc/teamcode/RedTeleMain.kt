@@ -6,6 +6,7 @@ import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
 import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.FieldCentricDrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
 
 @Mercurial.Attach
 //@DrivetrainSubsystem.Attach
+@FieldCentricDrivetrainSubsystem.Attach
 @ClawSubsystem.Attach
 @LiftPIDFSubsystem.Attach
 @LinearSlidePIDFSubsystem.Attach
@@ -29,14 +31,14 @@ class RedTeleMain : OpMode() {
         Mercurial.gamepad1.a.onTrue(ClawSubsystem.open(telemetry))
         Mercurial.gamepad1.b.onTrue(ClawSubsystem.close(telemetry))
 
-        Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePosition())
+        Mercurial.gamepad1.dpadUp.onTrue(LiftPIDFSubsystem.changePositionL())
         Mercurial.gamepad1.dpadUp.onTrue(Lambda("Log").setExecute {
             telemetry.addLine("Dpad Up")
         })
-        Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePosition(-1.0))
+        Mercurial.gamepad1.dpadDown.onTrue(LiftPIDFSubsystem.changePositionL(-1.0))
 
-        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePosition())
-        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.changePosition(-1.0))
+        Mercurial.gamepad1.dpadLeft.onTrue(LinearSlidePIDFSubsystem.changePositionL())
+        Mercurial.gamepad1.dpadRight.onTrue(LinearSlidePIDFSubsystem.changePositionL(-1.0))
 
         //Mercurial.gamepad1.leftBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, -1))
         //Mercurial.gamepad1.rightBumper.onTrue(LiftPIDFSubsystem.changeDerivative(telemetry, 1))
