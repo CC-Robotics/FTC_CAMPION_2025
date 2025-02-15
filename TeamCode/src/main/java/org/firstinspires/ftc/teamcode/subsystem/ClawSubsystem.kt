@@ -7,7 +7,6 @@ import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 
@@ -34,25 +33,17 @@ object ClawSubsystem : SubsystemCore() {
         claw.position = state.position
     }
 
-    fun close(telemetry: Telemetry): Lambda {
-        return Lambda("Close Claw")
-            .addRequirements(ClawSubsystem)
-            .addExecute {
-                claw.position = ClawState.CLOSED.position
-                state = ClawState.CLOSED
-                telemetry.addData("Claw", "Closing")
-                telemetry.update()
-            }
+    private fun updateClawState(state: ClawState) {
+        claw.position = state.position
+        this.state = state
+        telemetry.addData("Claw", state.name)
     }
 
-    fun open(telemetry: Telemetry): Lambda {
-        return Lambda("Open Claw")
+    fun updateClawStateL(state: ClawState): Lambda {
+        return Lambda("Update Claw State")
             .addRequirements(ClawSubsystem)
             .addExecute {
-                claw.position = ClawState.OPEN.position
-                state = ClawState.OPEN
-                telemetry.addData("Claw", "Opening")
-                telemetry.update()
+                updateClawState(state)
             }
     }
 

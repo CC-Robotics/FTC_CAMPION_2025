@@ -13,20 +13,13 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 
 @Autonomous(name = "Red | Auto - N/A | Main", group = "2024-25 OpCodes")
 abstract class RedAutoMain : LinearOpMode() {
-//    private val fL = Motor(hardwareMap, "fL")
-//    private val fR = Motor(hardwareMap, "fR")
-//    private val bL = Motor(hardwareMap, "bL")
-//    private val bR = Motor(hardwareMap, "bR")
     override fun runOpMode() {
         telemetry.addData("Status", "Initialized")
         telemetry.update()
 
-//        val drive = MecanumDrive(fL, fR, bL, bR);
-
         waitForStart()
 
         while (opModeIsActive()) {
-//            drive.driveRobotCentric(0.1, 0.1, 0.0)
             telemetry.update()
         }
     }

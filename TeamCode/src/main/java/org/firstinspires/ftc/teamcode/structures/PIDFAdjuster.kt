@@ -16,6 +16,14 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
     private var currentModifier = 0
     private val modifiers = listOf("p", "i", "d", "f")
 
+    companion object {
+        fun createAndAttach(telemetry: Telemetry, gamepad: BoundGamepad): PIDFAdjuster {
+            val adjuster = PIDFAdjuster(telemetry, gamepad)
+            adjuster.attach()
+            return adjuster
+        }
+    }
+
     fun updateTelemetry() {
 
         telemetry.addData(

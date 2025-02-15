@@ -22,7 +22,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
     // Dilation adds pixels to the boundaries of objects in an image. It is useful for joining broken parts of an object, filling small holes, etc.
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
     // A data class that holds information about a detected contour and has two properties rect and angle
-    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: String, val distance: Double, val hOffset: Double)
+    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: String, val distance: Double, val hOffset: Double, val area: Double)
     private val analyzedContours = mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
@@ -214,7 +214,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 // Calculate the rotated rectangle and angle
                 val rect = Imgproc.minAreaRect(MatOfPoint2f(*contour.toArray()))
                 val angle = calculateAngle(rect)
-                analyzedContours.add(AnalyzedContour(rect, angle, color, distanceCm, horizontalOffsetCm))
+                analyzedContours.add(AnalyzedContour(rect, angle, color, distanceCm, horizontalOffsetCm, rect.size.area()))
                 // Add the analyzed contour to the list
                 drawRotatedRect(rect, input)
             }
