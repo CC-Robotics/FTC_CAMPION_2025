@@ -81,7 +81,6 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
 
         gamepad.leftBumper.onTrue(Lambda("PIDF Adjuster Decrease").addExecute {
             if (enabled) {
-                telemetry.addData("skibidi", "sigma")
                 systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], -1.0)
                 updateTelemetry()
             }
@@ -89,7 +88,6 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
 
         gamepad.rightBumper.onTrue(Lambda("PIDF Adjuster Increase").addExecute {
             if (enabled) {
-                telemetry.addData("skibidi", "sigma")
                 systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], 1.0)
                 updateTelemetry()
             }
