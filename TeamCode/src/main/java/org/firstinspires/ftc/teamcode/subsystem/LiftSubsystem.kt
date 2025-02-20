@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
-import com.acmerobotics.roadrunner.clamp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.dairy.core.dependency.Dependency
@@ -11,12 +10,11 @@ import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.applySensitivity
 import org.firstinspires.ftc.teamcode.clampInt
 import org.firstinspires.ftc.teamcode.controller.PIDFValues
-import org.firstinspires.ftc.teamcode.lerpPIDFValuesRounded
+import org.firstinspires.ftc.teamcode.lerpPIDFValues
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
-import kotlin.math.min
 
-object LiftPIDFSubsystem : PIDFSubsystem() {
+object LiftSubsystem : PIDFSubsystem() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
@@ -45,18 +43,20 @@ object LiftPIDFSubsystem : PIDFSubsystem() {
         rightLift.mode = DcMotor.RunMode.RUN_USING_ENCODER
     }
 
-    override fun periodic(opMode: Wrapper) {
-        pidfController.setPIDF(lerpPIDFValuesRounded(defaultValues, extendedValues, 1.0))
-        changePositionL(
-            applySensitivity(Mercurial.gamepad2.leftStickY.state, 1.0, 0.65)
+    fun update(increment: Double) {
+        // if you uncomment this, you can't tune anymore LOL
+        // ~ el skibidi
+        // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
+        changePosition(
+            applySensitivity(increment, 1.0, 0.1)
         )
-        position = clampInt(position, 150, 1000000)
+        clampPosition(0, 150)
         val power = pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
 
         leftLift.power = power
         rightLift.power = power
 
-        // telemetry(power)
+        telemetry(power)
     }
 
     fun telemetry(power: Double) {

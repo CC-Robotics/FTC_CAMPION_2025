@@ -1,17 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import android.transition.Slide
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
 
-object LinearSlidePIDFSubsystem : PIDFSubsystem() {
+object LinearSlideSubsystem : PIDFSubsystem() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
@@ -25,11 +25,30 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
 
     private val slide by getHardware<DcMotorEx>("slide")
 
-    override fun periodic(opMode: Wrapper) {
-        changePosition(Mercurial.gamepad2.rightStickY.state)
+    val maxValue = 4300
+    val maxVal = 1200
+
+    override fun init(opMode: Wrapper) {
+        position = 0
+        pidfController.setPIDF(0.01, 0.0, 0.0,0.025)
+        slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        slide.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        slide.direction = DcMotorSimple.Direction.REVERSE
+    }
+
+    fun update(increment: Double) {
+        changePosition(increment)
         val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
         slide.power = power
-        // telemetry(power)
+        telemetry(power)
+    }
+
+    fun setPosition(position: SlidePosition) {
+        this.position = position.position
+    }
+
+    fun isBasicallyAt(position: SlidePosition): Boolean {
+        return isBasicallyAt(position.position)
     }
 
     fun telemetry(power: Double) {
@@ -38,9 +57,7 @@ object LinearSlidePIDFSubsystem : PIDFSubsystem() {
         telemetry.addData("$subsystemName Intended Power vs Power", "$power vs ${slide.power}")
     }
 
-    override fun init(opMode: Wrapper) {
-        slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        slide.mode = DcMotor.RunMode.RUN_USING_ENCODER
-        slide.direction = DcMotorSimple.Direction.REVERSE
+    enum class SlidePosition(val position: Int) {
+        VISION_POSITION(300)
     }
 }

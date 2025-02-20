@@ -52,9 +52,8 @@ object FieldCentricDrivetrainSubsystem : SubsystemCore() {
 
     override fun periodic(opMode: Wrapper) {
         val gamepad1 = Mercurial.gamepad1
-
-        val y = -gamepad1.leftStickY.state
-        val x = gamepad1.leftStickX.state
+        val y = -gamepad1.leftStickY.state // Remember, this is reversed!
+        val x = gamepad1.leftStickX.state * 1.1 // Counteract imperfect strafing
         val rx = gamepad1.rightStickX.state
 
         if (gamepad1.options.state || gamepad1.start.state) imu.resetYaw()

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.controller
 
+import org.firstinspires.ftc.teamcode.round
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import kotlin.math.abs
 import kotlin.math.min
@@ -107,21 +108,21 @@ class PIDFController @JvmOverloads constructor(
         fun adjustPIDF(
             controller: PIDFController,
             which: String,
-            multiplier: Double = 0.0
+            multiplier: Double
         ): Double {
             return when (which) {
                 "p" -> controller.p.also {
-                    controller.p = round((controller.p + (DEFAULT_INCREMENT_PROPORTIONAL * multiplier)) * 1_000) / 1_000
+                    controller.p = (controller.p + (DEFAULT_INCREMENT_PROPORTIONAL * multiplier)).round(3)
                 }
 
                 "i" -> controller.i.also {
-                    controller.i = round((controller.i + (DEFAULT_INCREMENT_INTEGRAL * multiplier)) * 1_000) / 1_000
+                    controller.i = (controller.i + (DEFAULT_INCREMENT_INTEGRAL * multiplier)).round(3)
                 }
                 "d" -> controller.d.also {
-                    controller.d = round((controller.d + (DEFAULT_INCREMENT_DERIVATIVE * multiplier)) * 10_000) / 10_000
+                    controller.d = (controller.d + (DEFAULT_INCREMENT_DERIVATIVE * multiplier)).round(4)
                 }
                 "f" -> controller.f.also {
-                    controller.f = round((controller.f + (DEFAULT_INCREMENT_FEEDFORWARD * multiplier)) * 10_000) / 10_000
+                    controller.f = (controller.f + (DEFAULT_INCREMENT_FEEDFORWARD * multiplier)).round(4)
                 }
                 else -> throw IllegalArgumentException("Invalid value: $which")
             }

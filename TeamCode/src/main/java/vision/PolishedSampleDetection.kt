@@ -1,5 +1,6 @@
 package vision
 
+import org.firstinspires.ftc.teamcode.Config
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline
@@ -22,7 +23,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
     // Dilation adds pixels to the boundaries of objects in an image. It is useful for joining broken parts of an object, filling small holes, etc.
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
     // A data class that holds information about a detected contour and has two properties rect and angle
-    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: String, val distance: Double, val hOffset: Double, val area: Double)
+    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: Config.SampleColor, val distance: Double, val hOffset: Double, val area: Double)
     private val analyzedContours = mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
@@ -64,7 +65,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
         // We then create masks of each color
         val maskRed1 = createColorMask(hsv, lowerRed1, upperRed1)
         val maskRed2 = createColorMask(hsv, lowerRed2, upperRed2)
-        val maskRed = combineMask(maskRed1, maskRed2)
+        val maskRed = combineMasks(maskRed1, maskRed2)
 
         val maskBlue = createColorMask(hsv, lowerBlue1, upperBlue1)
 
@@ -92,15 +93,14 @@ class PolishedSampleDetection : OpenCvPipeline() {
         return mask
     }
 
-    private fun combineMasks(mask1: Mat, mask2: Mat, mask3: Mat): Mat {
+    private fun combineMasks(vararg masks: Mat): Mat {
         val combinedMask = Mat()
-        Core.addWeighted(mask1, 1.0, mask2, 1.0, 0.0, combinedMask)
-        Core.addWeighted(combinedMask, 1.0, mask3, 1.0, 0.0, combinedMask)
-        return combinedMask
-    }
-    private fun combineMask(mask1: Mat, mask2: Mat): Mat {
-        val combinedMask = Mat()
-        Core.addWeighted(mask1, 1.0, mask2, 1.0, 0.0, combinedMask)
+        if (masks.isNotEmpty()) {
+            masks[0].copyTo(combinedMask)
+        }
+        for (i in 1 until masks.size) {
+            Core.addWeighted(combinedMask, 1.0, masks[i], 1.0, 0.0, combinedMask)
+        }
         return combinedMask
     }
 
@@ -188,7 +188,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 val distanceCm = distanceRaw * cos(cameraMountingAngle)
 
                 // Calculate the distance based on the contour area
-                Imgproc.putText(input, "Distance: ${distanceCm} cm", Point(cX.toDouble(), cY.toDouble() + 20), Imgproc.FONT_HERSHEY_COMPLEX, 1.0, Scalar(255.0, 255.0, 255.0))
+                Imgproc.putText(input, "Distance: $distanceCm cm", Point(cX.toDouble(), cY.toDouble() + 20), Imgproc.FONT_HERSHEY_COMPLEX, 1.0, Scalar(255.0, 255.0, 255.0))
 
                 // 1. Calculate Pixel Offset
                 val pixelOffsetX = cX - cx // Use principal point!
@@ -202,7 +202,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 // Display the horizontal offset
                 Imgproc.putText(
                     input,
-                    "H Offset: ${horizontalOffsetCm} cm",
+                    "H Offset: $horizontalOffsetCm cm",
                     Point(cX.toDouble(), cY.toDouble() + 40), // Adjust position as needed
                     Imgproc.FONT_HERSHEY_COMPLEX,
                     0.7,
@@ -216,7 +216,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 val angle = calculateAngle(rect)
                 analyzedContours.add(AnalyzedContour(rect, angle, color, distanceCm, horizontalOffsetCm, rect.size.area()))
                 // Add the analyzed contour to the list
-                drawRotatedRect(rect, input)
+                drawRotatedRect(rect, angle, input)
             }
         }
 
@@ -250,27 +250,17 @@ class PolishedSampleDetection : OpenCvPipeline() {
 
 
     // Draws the rotated rectangle and its angle on the image
-    private fun drawRotatedRect(rect: RotatedRect, mat: Mat) {
-        // Get the angle of the rotated rectangle
-        var rotRectAngle = rect.angle
-        // Adjust the angle based on the rectangle dimensions
-        if (rect.size.width < rect.size.height) {
-            rotRectAngle += 90.0
-        }
-        // Calculate the final angle
-        val angle = -(rotRectAngle - 180)
-        // Position for the angle text
+    private fun drawRotatedRect(rect: RotatedRect, angle: Double, mat: Mat) {
         val textPosition = Point(rect.center.x - 50, rect.center.y + 25)
-        // Draw the angle text on the image
         Imgproc.putText(
             mat,
             "${Math.round(angle)} deg",
-            textPosition, Imgproc.FONT_HERSHEY_PLAIN,
+            textPosition,
+            Imgproc.FONT_HERSHEY_PLAIN,
             1.0,
             Scalar(0.0, 255.0, 0.0),
             1
         )
-        // Draw the rotated rectangle on the image
         val points = arrayOfNulls<Point>(4)
         rect.points(points)
         for (i in points.indices) {
@@ -285,17 +275,17 @@ class PolishedSampleDetection : OpenCvPipeline() {
     }
 
 
-    private fun detectColor(input: Mat, cX: Int, cY: Int): String {
+    private fun detectColor(input: Mat, cX: Int, cY: Int): Config.SampleColor {
         val hsv = Mat()
         Imgproc.cvtColor(input, hsv, Imgproc.COLOR_RGB2HSV)
         val pixel = hsv.get(cY, cX)
         val hue = pixel[0]
 
-        return when {
-            hue in 0.0..10.0 || hue in 160.0..180.0 -> "Red"
-            hue in 20.0..30.0 -> "Yellow"
-            hue in 100.0..130.0 -> "Blue"
-            else -> "Unknown"
+        return when (hue) {
+            in 0.0..10.0, in 160.0..180.0 -> Config.SampleColor.RED
+            in 20.0..30.0 -> Config.SampleColor.YELLOW
+            in 100.0..130.0 -> Config.SampleColor.BLUE
+            else -> Config.SampleColor.UNKNOWN
         }
     }
 

@@ -3,15 +3,16 @@ package org.firstinspires.ftc.teamcode.structures
 import dev.frozenmilk.mercurial.bindings.BoundGamepad
 import dev.frozenmilk.mercurial.commands.Lambda
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.teamcode.basically
 import org.firstinspires.ftc.teamcode.controller.PIDFController
-import org.firstinspires.ftc.teamcode.subsystem.LiftPIDFSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LinearSlidePIDFSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
 
 class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundGamepad) {
     private var enabled = false
 
     private var currentSystem = 0
-    private val systems = listOf(LiftPIDFSubsystem, LinearSlidePIDFSubsystem)
+    private val systems = listOf(LiftSubsystem, LinearSlideSubsystem)
 
     private var currentModifier = 0
     private val modifiers = listOf("p", "i", "d", "f")
@@ -80,14 +81,16 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
 
         gamepad.leftBumper.onTrue(Lambda("PIDF Adjuster Decrease").addExecute {
             if (enabled) {
-                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], -1.0).execute()
+                telemetry.addData("skibidi", "sigma")
+                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], -1.0)
                 updateTelemetry()
             }
         })
 
         gamepad.rightBumper.onTrue(Lambda("PIDF Adjuster Increase").addExecute {
             if (enabled) {
-                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], 1.0).execute()
+                telemetry.addData("skibidi", "sigma")
+                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], 1.0)
                 updateTelemetry()
             }
         })
