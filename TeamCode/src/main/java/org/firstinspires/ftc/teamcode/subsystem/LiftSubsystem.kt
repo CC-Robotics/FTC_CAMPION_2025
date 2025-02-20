@@ -45,7 +45,6 @@ object LiftSubsystem : PIDFSubsystem() {
 
     fun update(increment: Double) {
         // if you uncomment this, you can't tune anymore LOL
-        // ~ el skibidi
         // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
         changePosition(
             applySensitivity(increment, 1.0, 0.1)
