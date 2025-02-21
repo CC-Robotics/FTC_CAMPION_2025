@@ -126,6 +126,24 @@ class PolishedSampleDetection : OpenCvPipeline() {
         }
     }
 
+    private fun getCoordinates(input: Mat, cX: Int, cY: Int): Pair<Double, Double> {
+        val centerX = input.width() / 2.0 // Principal point x-coordinate
+        val centerY = input.height() / 2.0 // Principal point y-coordinate
+        return Pair(cX - centerX, cY - centerY)
+    }
+    private fun getSamplePositions(offsetX: Double, offsetY: Double, distance: Double): Pair<Double, Double> {
+
+
+        val angleX = atan(offsetX / fx)
+        val angleY = atan(offsetY / fx)
+
+        // 5. Calculate Horizontal Offset (Requires Distance)
+        val sampleX = distance * tan(angleX)
+        val sampleY = distance * tan(angleY)
+        return Pair(sampleX, sampleY)
+
+    }
+
     private fun findAndDrawContours(mask: Mat, input: Mat) {
         // List to store all detected contours
         val contours = ArrayList<MatOfPoint>()
@@ -133,8 +151,6 @@ class PolishedSampleDetection : OpenCvPipeline() {
         Imgproc.findContours(mask, contours, Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
         // Clear the previous analyzed contours
         analyzedContours.clear()
-        val cx = input.width() / 2.0  // Principal point x-coordinate
-        val cy = input.height() / 2.0 // Principal point y-coordinate
 
         // Variable to keep track of the maximum contour area
         var maxArea = -9999999999.0
@@ -191,18 +207,15 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 Imgproc.putText(input, "Distance: $distanceCm cm", Point(cX.toDouble(), cY.toDouble() + 20), Imgproc.FONT_HERSHEY_COMPLEX, 1.0, Scalar(255.0, 255.0, 255.0))
 
                 // 1. Calculate Pixel Offset
-                val pixelOffsetX = cX - cx // Use principal point!
+                val (offsetX, offsetY) = getCoordinates(input, cX, cY)
 
-                // 4. Calculate Angle (Horizontal)
-                val angleX = atan(pixelOffsetX / fx)
-
-                // 5. Calculate Horizontal Offset (Requires Distance)
-                val horizontalOffsetCm = distanceCm * tan(angleX)
+                // 2. Calculate Sample Positions
+                val (sampleX, sampleY) = getSamplePositions(offsetX, offsetY, distanceCm)
 
                 // Display the horizontal offset
                 Imgproc.putText(
                     input,
-                    "H Offset: $horizontalOffsetCm cm",
+                    "H Offset: $sampleX cm",
                     Point(cX.toDouble(), cY.toDouble() + 40), // Adjust position as needed
                     Imgproc.FONT_HERSHEY_COMPLEX,
                     0.7,
@@ -214,7 +227,15 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 // Calculate the rotated rectangle and angle
                 val rect = Imgproc.minAreaRect(MatOfPoint2f(*contour.toArray()))
                 val angle = calculateAngle(rect)
-                analyzedContours.add(AnalyzedContour(rect, angle, color, distanceCm, horizontalOffsetCm, rect.size.area()))
+                analyzedContours.add(
+                    AnalyzedContour(
+                        rect,
+                        angle,
+                        color,
+                        distanceCm,
+                        sampleX,
+                        rect.size.area()
+                    ))
                 // Add the analyzed contour to the list
                 drawRotatedRect(rect, angle, input)
             }
