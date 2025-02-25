@@ -1,5 +1,7 @@
 # Campion Robotics - Team 16075
 
+For all 
+
 Please see below some useful information:
 
 ## How to Tune PIDF Values (For Beginners)
@@ -42,8 +44,9 @@ Please see below some useful information:
 When naming our OpCodes, we try to follow a concept called **functionally explicit nomenclature**.
 What does this mean? This means that each OpCode's name should clearly convey its purpose and
 functionality without requiring additional context or explanation. The goal is to make the code more
-readable and maintainable by ensuring that the intent behind each operation is immediately apparent
-to developers, even those who may not be familiar with the specific implementation details. For example,
+easily traversable by ensuring that the purpose of each OpMode is immediately apparent
+to developers, even those who may not be familiar with the specific implementation details. For
+example,
 OpModes should follow this format:
 
 ```

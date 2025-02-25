@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.structures
 import dev.frozenmilk.mercurial.bindings.BoundGamepad
 import dev.frozenmilk.mercurial.commands.Lambda
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import org.firstinspires.ftc.teamcode.basically
 import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
@@ -11,8 +10,10 @@ import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
 class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundGamepad) {
     private var enabled = false
 
-    private var currentSystem = 0
-    private val systems = listOf(LiftSubsystem, LinearSlideSubsystem)
+    private var currentController = 0
+    private val controllers =
+        listOf(LiftSubsystem.pidfController, LinearSlideSubsystem.pidfController)
+    private val names = listOf("Lift", "Linear Slide", "Collection")
 
     private var currentModifier = 0
     private val modifiers = listOf("p", "i", "d", "f")
@@ -28,7 +29,7 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
     fun updateTelemetry() {
 
         telemetry.addData(
-            "PIDF Adjuster", if (enabled) "On (${systems[currentSystem].subsystemName} | ${
+            "PIDF Adjuster", if (enabled) "On (${names[currentController]} | ${
                 PIDFController.nameMap[modifiers[currentModifier]]
             })" else "Off"
         )
@@ -36,7 +37,7 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
             "PIDF Adjuster Value",
             "(${
                 PIDFController.getPIDFValue(
-                    systems[currentSystem].pidfController,
+                    controllers[currentController],
                     modifiers[currentModifier]
                 )
             })"
@@ -53,14 +54,14 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
 
         gamepad.dpadUp.onTrue(Lambda("PIDF Adjuster Up").addExecute {
             if (enabled) {
-                currentSystem = (currentSystem + 1) % systems.size
+                currentController = (currentController + 1) % controllers.size
                 updateTelemetry()
             }
         })
 
         gamepad.dpadDown.onTrue(Lambda("PIDF Adjuster Down").addExecute {
             if (enabled) {
-                currentSystem = (currentSystem - 1 + systems.size) % systems.size
+                currentController = (currentController - 1 + controllers.size) % controllers.size
                 updateTelemetry()
             }
         })
@@ -81,14 +82,22 @@ class PIDFAdjuster(private val telemetry: Telemetry, private val gamepad: BoundG
 
         gamepad.leftBumper.onTrue(Lambda("PIDF Adjuster Decrease").addExecute {
             if (enabled) {
-                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], -1.0)
+                PIDFController.adjustPIDF(
+                    controllers[currentController],
+                    modifiers[currentModifier],
+                    -1.0
+                )
                 updateTelemetry()
             }
         })
 
         gamepad.rightBumper.onTrue(Lambda("PIDF Adjuster Increase").addExecute {
             if (enabled) {
-                systems[currentSystem].adjustPIDFValue(modifiers[currentModifier], 1.0)
+                PIDFController.adjustPIDF(
+                    controllers[currentController],
+                    modifiers[currentModifier],
+                    1.0
+                )
                 updateTelemetry()
             }
         })

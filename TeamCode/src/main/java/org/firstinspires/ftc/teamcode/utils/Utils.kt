@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.utils
 
 import org.firstinspires.ftc.teamcode.controller.PIDFValues
 import kotlin.math.abs
@@ -7,10 +7,10 @@ import kotlin.math.roundToInt
 
 fun lerpPIDFValues(v1: PIDFValues, v2: PIDFValues, p: Double, places: Int = 3): PIDFValues {
     return PIDFValues(
-        lerpf(v1.p, v2.p, p).round(places),
-        lerpf(v1.i, v2.i, p).round(places),
-        lerpf(v1.d, v2.d, p).round(places),
-        lerpf(v1.f, v2.f, p).round(places)
+        lerp(v1.p, v2.p, p).round(places),
+        lerp(v1.i, v2.i, p).round(places),
+        lerp(v1.d, v2.d, p).round(places),
+        lerp(v1.f, v2.f, p).round(places)
     )
 }
 
@@ -19,11 +19,23 @@ fun Double.round(decimals: Int): Double {
     return (this * factor).roundToInt() / factor
 }
 
-fun lerpf(a: Double, b: Double, p: Double): Double {
+fun lerp(a: Double, b: Double, p: Double): Double {
     return a + (b - a) * p
 }
 
-fun applySensitivity(value: Double, upSensitivity: Double, downSensitivity: Double = upSensitivity): Double {
+fun lerp(a: Int, b: Int, p: Double): Double {
+    return a + (b - a) * p
+}
+
+fun lerpRound(a: Int, b: Int, p: Double): Int {
+    return (a + (b - a) * p).roundToInt()
+}
+
+fun applySensitivity(
+    value: Double,
+    upSensitivity: Double,
+    downSensitivity: Double = upSensitivity
+): Double {
     if (value == 0.0) return 0.0
     return if (value > 0) {
         value * upSensitivity
@@ -31,6 +43,7 @@ fun applySensitivity(value: Double, upSensitivity: Double, downSensitivity: Doub
         value * downSensitivity
     }
 }
+
 fun basically(a: Double, b: Double, epsilon: Double): Boolean {
     return abs(a - b) < epsilon
 }

@@ -4,14 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
+import org.firstinspires.ftc.teamcode.Config.Behavior.*
 import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem.SlidePosition
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
-import vision.PolishedSampleDetection
 
 
 /*
@@ -32,33 +31,48 @@ open class TeleMain : OpMode() {
     override fun init() {
         telemetry.addData("Status", "Initialized")
 
-        Mercurial.gamepad1.a.onTrue(ClawSubsystem.updateClawStateL(ClawSubsystem.ClawState.OPEN))
-        Mercurial.gamepad1.b.onTrue(ClawSubsystem.updateClawStateL(ClawSubsystem.ClawState.CLOSED))
+        Mercurial.gamepad1.x.onTrue(ClawSubsystem.updateClawStateL(ClawSubsystem.ClawState.OPEN))
+        Mercurial.gamepad1.y.onTrue(ClawSubsystem.updateClawStateL(ClawSubsystem.ClawState.CLOSED))
 
-        pidfAdjuster = PIDFAdjuster(telemetry, Mercurial.gamepad2)
-        pidfAdjuster.attach()
+        Mercurial.gamepad2.a.onTrue(Lambda("Change behavior").addExecute {
+            when (Config.behavior) {
+                MANUAL -> Config.behavior = RUN_TO_VISION_POSITION
+                COLLECTING -> Config.behavior = MANUAL
+                RUN_TO_VISION_POSITION -> {}
+            }
+        })
+
+        Mercurial.gamepad1.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, -1.0))
+        Mercurial.gamepad1.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, 1.0))
+
+        Mercurial.gamepad2.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, -1.0))
+        Mercurial.gamepad2.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, 1.0))
+
+        Mercurial.gamepad1.y.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, 1.0))
+        Mercurial.gamepad1.a.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, -1.0))
+
+        pidfAdjuster = PIDFAdjuster.createAndAttach(telemetry, Mercurial.gamepad2)
         telemetry.update()
     }
 
     override fun loop() {
         when (Config.behavior) {
-            Config.Behavior.MANUAL -> {
+            MANUAL -> {
                 LiftSubsystem.update(Mercurial.gamepad2.leftStickY.state)
                 LinearSlideSubsystem.update(Mercurial.gamepad2.rightStickY.state)
+                DrivetrainSubsystem.updateMotors()
             }
 
-            Config.Behavior.COLLECTING -> {
-                Mercurial.gamepad2.a.onTrue(Lambda("Set to manual").addExecute {
-                    Config.behavior = Config.Behavior.MANUAL
-                })
+            COLLECTING -> {
                 val sample = VisionSubsystem.getBestContour() ?: return
             }
 
-            Config.Behavior.RUN_TO_VISION_POSITION -> {
-                LinearSlideSubsystem.setPosition(SlidePosition.VISION_POSITION)
-                if (LinearSlideSubsystem.isBasicallyAt(SlidePosition.VISION_POSITION)) {
-                    Config.behavior = Config.Behavior.COLLECTING
-                }
+            RUN_TO_VISION_POSITION -> {
+                Config.behavior = MANUAL
+                // LinearSlideSubsystem.setPosition(SlidePosition.VISION_POSITION)
+//                if (LinearSlideSubsystem.isBasicallyAt(SlidePosition.VISION_POSITION)) {
+//                    Config.behavior = COLLECTING
+//                }
             }
         }
         pidfAdjuster.updateTelemetry()

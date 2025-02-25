@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.structures
 
 import dev.frozenmilk.mercurial.commands.Lambda
-import org.firstinspires.ftc.teamcode.basically
-import org.firstinspires.ftc.teamcode.clampInt
+import org.firstinspires.ftc.teamcode.utils.basically
+import org.firstinspires.ftc.teamcode.utils.clampInt
 import org.firstinspires.ftc.teamcode.controller.PIDFController
 import kotlin.math.max
 import kotlin.math.roundToInt

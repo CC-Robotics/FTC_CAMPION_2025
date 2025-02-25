@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.controller
 
-import org.firstinspires.ftc.teamcode.round
-import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
+import org.firstinspires.ftc.teamcode.utils.round
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.round
 
 data class PIDFValues(val p: Double, val i: Double, val d: Double, val f: Double)
 
@@ -56,6 +54,7 @@ data class PIDFValues(val p: Double, val i: Double, val d: Double, val f: Double
  *
  * PID tuning is as much an art as it is a science.
  */
+
 
 /**
  * This is a PID controller (https://en.wikipedia.org/wiki/PID_controller)
@@ -144,8 +143,8 @@ class PIDFController @JvmOverloads constructor(
     private var totalError = 0.0
     private var prevErrorVal = 0.0
 
-    private var errorToleranceP = 0.05
-    private var errorToleranceV = Double.POSITIVE_INFINITY
+    private var errorTolerance_p = 0.05
+    private var errorTolerance_v = Double.POSITIVE_INFINITY
 
     private var lastTimeStamp = 0.0
     var period: Double = 0.0
@@ -192,8 +191,8 @@ class PIDFController @JvmOverloads constructor(
      * @param velocityTolerance Velocity error which is tolerable.
      */
     fun setTolerance(positionTolerance: Double, velocityTolerance: Double) {
-        errorToleranceP = positionTolerance
-        errorToleranceV = velocityTolerance
+        errorTolerance_p = positionTolerance
+        errorTolerance_v = velocityTolerance
     }
 
     /**
@@ -223,7 +222,8 @@ class PIDFController @JvmOverloads constructor(
      * @return Whether the error is within the acceptable bounds.
      */
     fun atSetPoint(): Boolean {
-        return (abs(positionError) < errorToleranceP && abs(velocityError) < errorToleranceV)
+        return abs(positionError) < errorTolerance_p
+                && abs(velocityError) < errorTolerance_v
     }
 
     val coefficients: DoubleArray
@@ -236,7 +236,7 @@ class PIDFController @JvmOverloads constructor(
         /**
          * @return the tolerances of the controller
          */
-        get() = doubleArrayOf(errorToleranceP, errorToleranceV)
+        get() = doubleArrayOf(errorTolerance_p, errorTolerance_v)
 
     /**
      * Calculates the next output of the PIDF controller.
@@ -304,11 +304,11 @@ class PIDFController @JvmOverloads constructor(
         f = kf
     }
 
-    fun setPIDF(values: PIDFValues) {
-        p = values.p
-        i = values.i
-        d = values.d
-        f = values.f
+    fun setPIDF(k: PIDFValues) {
+        p = k.p
+        i = k.i
+        d = k.d
+        f = k.f
     }
 
     fun setIntegrationBounds(integralMin: Double, integralMax: Double) {

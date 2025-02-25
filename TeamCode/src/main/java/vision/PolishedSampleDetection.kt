@@ -1,6 +1,7 @@
 package vision
 
 import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.utils.lerp
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline
@@ -23,7 +24,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
     // Dilation adds pixels to the boundaries of objects in an image. It is useful for joining broken parts of an object, filling small holes, etc.
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
     // A data class that holds information about a detected contour and has two properties rect and angle
-    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: Config.SampleColor, val distance: Double, val hOffset: Double, val area: Double)
+    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: Config.SampleColor, val distance: Double, val coords: Pair<Double, Double>, val area: Double)
     private val analyzedContours = mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
@@ -114,15 +115,10 @@ class PolishedSampleDetection : OpenCvPipeline() {
     }
     // Calculates the ideal KFactor values
     private fun idealKFactor(distance: Double): Double {
-        // Linear interpolation between known K factors at known distances
         return when {
             distance <= 30 -> 730000.0 // K factor at 30cm
             distance >= 90 -> 250000.0 // K factor at 90cm
-            else -> {
-                // Linear interpolation between 30cm and 90cm
-                val fraction = (distance - 30) / (90 - 30)
-                730000.0 + fraction * (250000 - 730000)
-            }
+            else -> lerp(730000.0, 250000.0, (distance - 30) / (90 - 30))
         }
     }
 
@@ -143,6 +139,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
         return Pair(sampleX, sampleY)
 
     }
+
 
     private fun findAndDrawContours(mask: Mat, input: Mat) {
         // List to store all detected contours
@@ -233,7 +230,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                         angle,
                         color,
                         distanceCm,
-                        sampleX,
+                        Pair(sampleX, sampleY),
                         rect.size.area()
                     ))
                 // Add the analyzed contour to the list

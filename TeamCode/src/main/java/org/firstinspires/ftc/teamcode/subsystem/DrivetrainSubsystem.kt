@@ -32,12 +32,7 @@ object DrivetrainSubsystem : SubsystemCore() {
         bR.direction = DcMotorSimple.Direction.REVERSE
     }
 
-    override fun periodic(opMode: Wrapper) {
-        val gamepad1 = Mercurial.gamepad1
-        val y = -gamepad1.leftStickY.state // Remember, this is reversed!
-        val x = gamepad1.leftStickX.state * 1.1 // Counteract imperfect strafing
-        val rx = gamepad1.rightStickX.state
-
+    fun drive(x: Double = 0.0, y: Double = 0.0, rx: Double = 0.0) {
         // Normalize the values so neither exceed +/- 1.0
         val denominator = max(abs(y) + abs(x) + abs(rx), 1.0)
         val frontLeftPower = (y + x + rx) / denominator
@@ -50,5 +45,14 @@ object DrivetrainSubsystem : SubsystemCore() {
         bL.power = backLeftPower
         fR.power = frontRightPower
         bR.power = backRightPower
+    }
+
+    fun updateMotors() {
+        val gamepad1 = Mercurial.gamepad1
+        val y = -gamepad1.leftStickY.state // Remember, this is reversed!
+        val x = gamepad1.leftStickX.state * 1.1 // Counteract imperfect strafing
+        val rx = gamepad1.rightStickX.state
+
+        drive(x, y, rx)
     }
 }

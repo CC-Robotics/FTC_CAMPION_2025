@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
-import android.transition.Slide
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
@@ -8,7 +7,10 @@ import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
+import dev.frozenmilk.util.units.distance.Distance
+import dev.frozenmilk.util.units.distance.cm
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
+import org.firstinspires.ftc.teamcode.utils.lerp
 import java.lang.annotation.Inherited
 
 object LinearSlideSubsystem : PIDFSubsystem() {
@@ -25,14 +27,17 @@ object LinearSlideSubsystem : PIDFSubsystem() {
 
     private val slide by getHardware<DcMotorEx>("slide")
 
-    val maxValue = 4300
-    val maxVal = 1200
+    // in cm, min extend to max extend
+    private val rangeOfLength = Pair(44.45, 104.14)
+    private const val MAX_POSITION = 400
+    val length: Distance
+        get() = lerp(rangeOfLength.first, rangeOfLength.second, position.toDouble() / MAX_POSITION).cm
 
     override fun init(opMode: Wrapper) {
         position = 0
-        pidfController.setPIDF(0.01, 0.0, 0.0,0.025)
+        pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        slide.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        slide.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         slide.direction = DcMotorSimple.Direction.REVERSE
     }
 
@@ -47,7 +52,7 @@ object LinearSlideSubsystem : PIDFSubsystem() {
         this.position = position.position
     }
 
-    fun isBasicallyAt(position: SlidePosition): Boolean {
+    fun sBasicallyAt(position: SlidePosition): Boolean {
         return isBasicallyAt(position.position)
     }
 
