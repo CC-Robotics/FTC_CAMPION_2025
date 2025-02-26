@@ -5,11 +5,11 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients
 
 @Config
 object Config {
-    var behavior = Behavior.MANUAL
-    var allianceColour = SampleColor.UNKNOWN
+    @JvmField var behavior = Behavior.MANUAL
+    @JvmField var allianceColour = SampleColor.UNKNOWN
 
-    var LINEAR_SLIDE_PIDF = PIDFCoefficients()
-    var LIFT_PIDF = PIDFCoefficients()
+    @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients()
+    @JvmField var LIFT_PIDF = PIDFCoefficients()
 
     enum class Behavior {
         COLLECTING,
