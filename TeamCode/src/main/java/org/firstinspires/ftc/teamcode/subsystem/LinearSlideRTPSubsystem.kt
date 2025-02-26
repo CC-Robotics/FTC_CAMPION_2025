@@ -29,6 +29,7 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
     override fun init(opMode: Wrapper) {
         position = 0
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        slide.targetPosition = 0
         slide.mode = DcMotor.RunMode.RUN_TO_POSITION
         slide.direction = DcMotorSimple.Direction.REVERSE
     }
@@ -36,7 +37,7 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
     fun update(increment: Double) {
         changePosition(increment)
         clampPosition(0, MAX_POSITION)
-        slide.targetPosition = MAX_POSITION
+        slide.targetPosition = position
         telemetry()
     }
 

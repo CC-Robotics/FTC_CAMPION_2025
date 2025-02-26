@@ -32,6 +32,8 @@ object LiftRTPSubsystem : PIDFSubsystem() {
         position = 0
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftLift.targetPosition = 0
+        rightLift.targetPosition = 0
         leftLift.mode = DcMotor.RunMode.RUN_TO_POSITION
         rightLift.mode = DcMotor.RunMode.RUN_TO_POSITION
     }

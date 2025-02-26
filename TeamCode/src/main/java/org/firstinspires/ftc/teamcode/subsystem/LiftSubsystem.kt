@@ -7,11 +7,9 @@ import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import dev.frozenmilk.util.units.angle.deg
 import org.firstinspires.ftc.teamcode.utils.applySensitivity
 import org.firstinspires.ftc.teamcode.controller.PIDFValues
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
-import org.firstinspires.ftc.teamcode.utils.lerp
 import java.lang.annotation.Inherited
 
 object LiftSubsystem : PIDFSubsystem() {
@@ -29,18 +27,17 @@ object LiftSubsystem : PIDFSubsystem() {
     private val rightLift by getHardware<DcMotorEx>("right_lift")
     private val leftLift by getHardware<DcMotorEx>("left_lift")
 
-
     private val defaultValues = PIDFValues(0.004, 0.02, 0.0, 0.025)
-    private val extendedValues = PIDFValues(0.004, 0.02, 0.0, 0.025)
+//    private val extendedValues = PIDFValues(0.004, 0.02, 0.0, 0.025)
 
-    val maxPosition = 150
-    val rangeOfMotion = Pair(-10, 70)
-    val angle
-        get() = lerp(
-            rangeOfMotion.first,
-            rangeOfMotion.second,
-            position.toDouble() / maxPosition
-        ).deg
+    private const val MAX_POSITION = 150
+//    val rangeOfMotion = Pair(-10, 70)
+//    val angle
+//        get() = lerp(
+//            rangeOfMotion.first,
+//            rangeOfMotion.second,
+//            position.toDouble() / maxPosition
+//        ).deg
 
     override fun init(opMode: Wrapper) {
         position = 0
@@ -58,7 +55,7 @@ object LiftSubsystem : PIDFSubsystem() {
         changePosition(
             applySensitivity(increment, 1.0, 0.2)
         )
-        clampPosition(0, maxPosition)
+        clampPosition(0, MAX_POSITION)
         val power =
             pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
 
