@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
@@ -25,13 +27,14 @@ object LiftSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Lift"
 
-    private val rightLift by getHardware<DcMotorEx>("right_lift")
-    private val leftLift by getHardware<DcMotorEx>("left_lift")
+    private val rightLift by subsystemCell { getHardware<DcMotorEx>("right_lift") }
+    private val leftLift by subsystemCell { getHardware<DcMotorEx>("left_lift") }
 
     private val defaultValues = PIDFCoefficients(0.004, 0.02, 0.0, 0.025)
 //    private val extendedValues = PIDFValues(0.004, 0.02, 0.0, 0.025)
 
-    private const val MAX_POSITION = 150
+    private const val MAX_POSITION = 1000
+    private lateinit var dashboardTelemetry: MultipleTelemetry
 //    val rangeOfMotion = Pair(-10, 70)
 //    val angle
 //        get() = lerp(
@@ -41,8 +44,9 @@ object LiftSubsystem : PIDFSubsystem() {
 //        ).deg
 
     override fun init(opMode: Wrapper) {
-        position = 0
+        targetPosition = 0
         pidfController.setPIDF(defaultValues)
+        dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
 
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -53,13 +57,13 @@ object LiftSubsystem : PIDFSubsystem() {
     fun update(increment: Double) {
         // if you uncomment this, you can't tune anymore LOL
         // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
-        // pidfController.setPIDF(Config.LIFT_PIDF)
+        pidfController.setPIDF(Config.LIFT_PIDF)
         changePosition(
             applySensitivity(increment, 1.0, 0.2)
         )
         clampPosition(0, MAX_POSITION)
         val power =
-            pidfController.calculate(rightLift.currentPosition.toDouble(), position.toDouble())
+            pidfController.calculate(rightLift.currentPosition.toDouble(), targetPosition.toDouble())
 
         leftLift.power = power
         rightLift.power = power
@@ -68,10 +72,14 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     fun telemetry(power: Double) {
+        dashboardTelemetry.addData("Left Lift Position", leftLift.currentPosition)
+        dashboardTelemetry.addData("Right Lift Position", rightLift.currentPosition)
+        dashboardTelemetry.addData("Target Position", targetPosition)
+        dashboardTelemetry.update()
         telemetry.addData("Left Stick Y", Mercurial.gamepad2.leftStickY.state)
         telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
         telemetry.addData("Right Lift Real Position", rightLift.currentPosition)
-        telemetry.addData("$subsystemName Position", position)
+        telemetry.addData("$subsystemName Position", targetPosition)
         telemetry.addData("Left Lift Power (real vs intended)", "${leftLift.power} vs $power")
         telemetry.addData("Right Lift Power (real vs intended)", "${rightLift.power} vs $power")
     }

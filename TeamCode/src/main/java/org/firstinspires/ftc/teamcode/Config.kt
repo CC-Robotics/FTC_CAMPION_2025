@@ -9,7 +9,7 @@ object Config {
     @JvmField var allianceColour = SampleColor.UNKNOWN
 
     @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients()
-    @JvmField var LIFT_PIDF = PIDFCoefficients()
+    @JvmField var LIFT_PIDF = PIDFCoefficients(0.027, 0.0027, 0.00001, 0.00007)
 
     enum class Behavior {
         COLLECTING,

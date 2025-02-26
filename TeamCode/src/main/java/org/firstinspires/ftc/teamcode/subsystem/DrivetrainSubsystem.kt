@@ -22,10 +22,10 @@ object DrivetrainSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val fR by getHardware<DcMotorEx>("fR")
-    private val fL by getHardware<DcMotorEx>("fL")
-    private val bR by getHardware<DcMotorEx>("bR")
-    private val bL by getHardware<DcMotorEx>("bL")
+    private val fR by subsystemCell { getHardware<DcMotorEx>("fR") }
+    private val fL by subsystemCell { getHardware<DcMotorEx>("fL") }
+    private val bR by subsystemCell { getHardware<DcMotorEx>("bR") }
+    private val bL by subsystemCell { getHardware<DcMotorEx>("bL") }
 
     override fun init(opMode: Wrapper) {
         fR.direction = DcMotorSimple.Direction.REVERSE

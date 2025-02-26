@@ -6,7 +6,6 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.SDKSubsystem
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import dev.frozenmilk.mercurial.subsystems.SubsystemObjectCell
-import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem.subsystemCell
 
 open class SubsystemCore : SDKSubsystem() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY
@@ -14,13 +13,8 @@ open class SubsystemCore : SDKSubsystem() {
     open val subsystemName = this::class.simpleName
 
     companion object {
-        inline fun <reified T, reified K> getHardwareAndCast(id: String): SubsystemObjectCell<K> = subsystemCell {
-            val hardware = FeatureRegistrar.activeOpMode.hardwareMap.get(T::class.java, id)
-            return@subsystemCell hardware as K
-        }
-
-        inline fun <reified T> getHardware(id: String): SubsystemObjectCell<T> = subsystemCell {
-            FeatureRegistrar.activeOpMode.hardwareMap.get(T::class.java, id)
+        inline fun <reified T> getHardware(id: String): T {
+            return FeatureRegistrar.activeOpMode.hardwareMap.get(T::class.java, id)
         }
     }
 

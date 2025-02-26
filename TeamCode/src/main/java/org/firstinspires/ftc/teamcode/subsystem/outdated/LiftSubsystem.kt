@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem.outdated
 
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
@@ -21,8 +22,8 @@ object LiftSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val rightLift by getHardware<DcMotorEx>("right_lift")
-    private val leftLift by getHardware<DcMotorEx>("left_lift")
+    private val rightLift by subsystemCell { getHardware<DcMotorEx>("right_lift") }
+    private val leftLift by subsystemCell { getHardware<DcMotorEx>("left_lift") }
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100

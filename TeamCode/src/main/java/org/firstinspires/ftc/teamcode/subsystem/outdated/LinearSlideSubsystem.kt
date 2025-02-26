@@ -21,7 +21,7 @@ object LinearSlideSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val slide by getHardware<DcMotorEx>("slide")
+    private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
     private var position: Int = 0
     private const val INCREMENT: Int = 100

@@ -42,14 +42,14 @@ open class TeleMain : OpMode() {
             }
         })
 
-        Mercurial.gamepad1.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, -1.0))
-        Mercurial.gamepad1.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, 1.0))
+        Mercurial.gamepad1.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, -0.005))
+        Mercurial.gamepad1.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, 0.005))
 
-        Mercurial.gamepad2.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, -1.0))
-        Mercurial.gamepad2.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, 1.0))
+        Mercurial.gamepad2.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, -0.005))
+        Mercurial.gamepad2.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, 0.005))
 
-        Mercurial.gamepad1.y.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, 1.0))
-        Mercurial.gamepad1.a.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, -1.0))
+        Mercurial.gamepad1.y.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, 0.005))
+        Mercurial.gamepad1.a.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, -0.005))
 
         pidfAdjuster = PIDFAdjuster.createAndAttach(telemetry, Mercurial.gamepad2)
         telemetry.update()

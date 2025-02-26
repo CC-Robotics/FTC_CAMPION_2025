@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
@@ -20,9 +21,9 @@ object ClawSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val wrist by getHardware<Servo>("wrist")
-    private val axle by getHardware<Servo>("axle")
-    private val claw by getHardware<Servo>("claw")
+    private val wrist by subsystemCell { getHardware<Servo>("wrist") }
+    private val axle by subsystemCell { getHardware<Servo>("axle") }
+    private val claw by subsystemCell { getHardware<Servo>("claw") }
 
     private var state = ClawState.OPEN
 
@@ -43,16 +44,16 @@ object ClawSubsystem : SubsystemCore() {
         axle.position = 0.0
     }
 
-    private fun moveWrist(multiplier: Double, useAsMultiplier: Boolean = true) {
-        wrist.position +=(if (useAsMultiplier) 0.001 else 1.0) * multiplier
+    private fun moveWrist(amount: Double) {
+        wrist.position += amount
     }
 
-    private fun moveClaw(multiplier: Double, useAsMultiplier: Boolean = true) {
-        claw.position += (if (useAsMultiplier) 0.001 else 1.0) * multiplier
+    private fun moveClaw(amount: Double) {
+        claw.position += amount
     }
 
-    private fun moveAxel(multiplier: Double, useAsMultiplier: Boolean = true) {
-        axle.position += (if (useAsMultiplier) 0.001 else 1.0) * multiplier
+    private fun moveAxel(amount: Double) {
+        axle.position += amount
     }
 
     fun moveServoL(which: ServoType, multiplier: Double): Lambda {

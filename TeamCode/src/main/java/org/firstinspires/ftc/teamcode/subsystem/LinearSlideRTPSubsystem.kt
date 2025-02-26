@@ -22,12 +22,12 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Slide"
 
-    private val slide by getHardware<DcMotorEx>("slide")
+    private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
     private const val MAX_POSITION = 600
 
     override fun init(opMode: Wrapper) {
-        position = 0
+        targetPosition = 0
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         slide.targetPosition = 0
         slide.mode = DcMotor.RunMode.RUN_TO_POSITION
@@ -37,13 +37,13 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
     fun update(increment: Double) {
         changePosition(increment)
         clampPosition(0, MAX_POSITION)
-        slide.targetPosition = position
+        slide.targetPosition = targetPosition
         telemetry()
     }
 
     fun telemetry() {
         telemetry.addData("$subsystemName Real Position", slide.currentPosition)
-        telemetry.addData("$subsystemName Position", position)
+        telemetry.addData("$subsystemName Position", targetPosition)
         telemetry.addData("$subsystemName Power", "${slide.power}")
     }
 

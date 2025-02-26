@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 open class PIDFSubsystem : SubsystemCore() {
     open val pidfController = PIDFController(0.00, 0.0, 0.0, 0.0)
 
-    open var position: Int = 0
+    open var targetPosition: Int = 0
     open val increment: Int = 5
 
     open fun adjustPIDFValue(value: String = "p", multiplier: Double) {
@@ -27,15 +27,15 @@ open class PIDFSubsystem : SubsystemCore() {
     }
 
     open fun changePosition(multiplier: Double = 1.0) {
-        position = max(position + increment * multiplier, 0.0).roundToInt()
+        targetPosition = max(targetPosition + increment * multiplier, 0.0).roundToInt()
     }
 
     open fun clampPosition(lo: Int, hi: Int) {
-        position = clampInt(position, lo, hi)
+        targetPosition = clampInt(targetPosition, lo, hi)
     }
 
     fun isBasicallyAt(pos: Int): Boolean {
-        return basically(position.toDouble(), pos.toDouble(), 5.0)
+        return basically(targetPosition.toDouble(), pos.toDouble(), 5.0)
     }
 
     open fun changePositionL(multiplier: Double = 1.0): Lambda {

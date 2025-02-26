@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
@@ -25,8 +26,10 @@ object VisionSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val camera = createCamera()
+    private lateinit var camera: OpenCvWebcam
     private lateinit var pipeline: PolishedSampleDetection
+
+    val camName by subsystemCell { getHardware<WebcamName>("CrocCam") }
 
     private fun createCamera(): OpenCvWebcam {
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier(
@@ -35,13 +38,14 @@ object VisionSubsystem : SubsystemCore() {
             hardwareMap.appContext.packageName,
 
             )
-        val camName by getHardware<WebcamName>("CrocCam")
+
         val camera = OpenCvCameraFactory.getInstance().createWebcam(camName, cameraMonitorViewId)
 
         return camera
     }
 
     override fun init(opMode: Wrapper) {
+        camera = createCamera()
         camera.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
                 // Start the streaming session with desired resolution and orientation

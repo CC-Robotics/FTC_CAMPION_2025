@@ -26,16 +26,16 @@ object LinearSlideSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Slide"
 
-    private val slide by getHardware<DcMotorEx>("slide")
+    private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
     // in cm, min extend to max extend
     private val rangeOfLength = Pair(44.45, 104.14)
     private const val MAX_POSITION = 400
     val length: Distance
-        get() = lerp(rangeOfLength.first, rangeOfLength.second, position.toDouble() / MAX_POSITION).cm
+        get() = lerp(rangeOfLength.first, rangeOfLength.second, targetPosition.toDouble() / MAX_POSITION).cm
 
     override fun init(opMode: Wrapper) {
-        position = 0
+        targetPosition = 0
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         slide.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -43,15 +43,15 @@ object LinearSlideSubsystem : PIDFSubsystem() {
     }
 
     fun update(increment: Double) {
-        // pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
+        pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
         changePosition(increment)
-        val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
+        val power = pidfController.calculate(slide.currentPosition.toDouble(), targetPosition.toDouble())
         slide.power = power
         telemetry(power)
     }
 
     fun setPosition(position: SlidePosition) {
-        this.position = position.position
+        this.targetPosition = position.position
     }
 
     fun sBasicallyAt(position: SlidePosition): Boolean {
@@ -60,7 +60,7 @@ object LinearSlideSubsystem : PIDFSubsystem() {
 
     fun telemetry(power: Double) {
         telemetry.addData("$subsystemName Real Position", slide.currentPosition)
-        telemetry.addData("$subsystemName Position", position)
+        telemetry.addData("$subsystemName Position", targetPosition)
         telemetry.addData("$subsystemName Intended Power vs Power", "$power vs ${slide.power}")
     }
 

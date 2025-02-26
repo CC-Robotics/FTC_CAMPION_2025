@@ -23,13 +23,13 @@ object LiftRTPSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Lift"
 
-    private val rightLift by getHardware<DcMotorEx>("right_lift")
-    private val leftLift by getHardware<DcMotorEx>("left_lift")
+    private val rightLift by subsystemCell { getHardware<DcMotorEx>("right_lift") }
+    private val leftLift by subsystemCell { getHardware<DcMotorEx>("left_lift") }
 
     const val MAX_POSITION = 150
 
     override fun init(opMode: Wrapper) {
-        position = 0
+        targetPosition = 0
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftLift.targetPosition = 0
@@ -43,8 +43,8 @@ object LiftRTPSubsystem : PIDFSubsystem() {
             applySensitivity(increment, 1.0, 0.2)
         )
         clampPosition(0, MAX_POSITION)
-        leftLift.targetPosition = position
-        rightLift.targetPosition = position
+        leftLift.targetPosition = targetPosition
+        rightLift.targetPosition = targetPosition
         telemetry()
     }
 
@@ -52,7 +52,7 @@ object LiftRTPSubsystem : PIDFSubsystem() {
         telemetry.addData("Left Stick Y", Mercurial.gamepad2.leftStickY.state)
         telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
         telemetry.addData("Right Lift Real Position", rightLift.currentPosition)
-        telemetry.addData("$subsystemName Position", position)
+        telemetry.addData("$subsystemName Position", targetPosition)
         telemetry.addData("Left Lift Power (real vs intended)", "${leftLift.power}")
         telemetry.addData("Right Lift Power (real vs intended)", "${rightLift.power}")
     }
