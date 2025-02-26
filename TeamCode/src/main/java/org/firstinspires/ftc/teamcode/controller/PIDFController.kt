@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.controller
 
+import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import org.firstinspires.ftc.teamcode.utils.round
 import kotlin.math.abs
 import kotlin.math.min
@@ -304,7 +305,7 @@ class PIDFController @JvmOverloads constructor(
         f = kf
     }
 
-    fun setPIDF(k: PIDFValues) {
+    fun setPIDF(k: PIDFCoefficients) {
         p = k.p
         i = k.i
         d = k.d

@@ -9,6 +9,7 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import dev.frozenmilk.util.units.distance.Distance
 import dev.frozenmilk.util.units.distance.cm
+import org.firstinspires.ftc.teamcode.Config
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.utils.lerp
 import java.lang.annotation.Inherited
@@ -42,6 +43,7 @@ object LinearSlideSubsystem : PIDFSubsystem() {
     }
 
     fun update(increment: Double) {
+        pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
         changePosition(increment)
         val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
         slide.power = power
