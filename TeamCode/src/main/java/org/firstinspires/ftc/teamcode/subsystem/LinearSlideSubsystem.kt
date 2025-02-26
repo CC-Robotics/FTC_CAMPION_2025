@@ -43,7 +43,7 @@ object LinearSlideSubsystem : PIDFSubsystem() {
     }
 
     fun update(increment: Double) {
-        pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
+        // pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
         changePosition(increment)
         val power = pidfController.calculate(slide.currentPosition.toDouble(), position.toDouble())
         slide.power = power
