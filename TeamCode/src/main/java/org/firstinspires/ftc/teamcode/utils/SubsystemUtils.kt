@@ -7,12 +7,12 @@ import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-fun calculateEndEffectorDistance(lift: LiftSubsystem, slide: LinearSlideSubsystem): Distance {
-    val angleRadians = lift.angle.intoRadians().value
-    val extension = slide.length.value
-    return sqrt(
-        extension * extension + extension * extension - 2 * extension * extension * cos(
-            angleRadians
-        )
-    ).cm
-}
+//fun calculateEndEffectorDistance(lift: LiftSubsystem, slide: LinearSlideSubsystem): Distance {
+//    val angleRadians = lift.angle.intoRadians().value
+//    val extension = slide.length.value
+//    return sqrt(
+//        extension * extension + extension * extension - 2 * extension * extension * cos(
+//            angleRadians
+//        )
+//    ).cm
+//}
