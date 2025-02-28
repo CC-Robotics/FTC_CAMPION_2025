@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 open class PIDFSubsystem : SubsystemCore() {
     open val pidfController = PIDFController(0.00, 0.0, 0.0, 0.0)
 
-    open var targetPosition: Int = 0
+    @JvmField var targetPosition: Int = 0
     open val increment: Int = 5
 
     open fun adjustPIDFValue(value: String = "p", multiplier: Double) {

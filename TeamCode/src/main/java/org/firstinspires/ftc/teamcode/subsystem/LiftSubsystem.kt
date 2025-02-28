@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.applySensitivity
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
 
+@com.acmerobotics.dashboard.config.Config
 object LiftSubsystem : PIDFSubsystem() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
@@ -35,6 +37,8 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private const val MAX_POSITION = 1000
     private lateinit var dashboardTelemetry: MultipleTelemetry
+    override val increment = 15
+    @JvmField var targetPositionTunable = 0
 //    val rangeOfMotion = Pair(-10, 70)
 //    val angle
 //        get() = lerp(
@@ -48,6 +52,8 @@ object LiftSubsystem : PIDFSubsystem() {
         pidfController.setPIDF(defaultValues)
         dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
 
+        rightLift.direction = DcMotorSimple.Direction.REVERSE
+
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -58,10 +64,12 @@ object LiftSubsystem : PIDFSubsystem() {
         // if you uncomment this, you can't tune anymore LOL
         // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
         pidfController.setPIDF(Config.LIFT_PIDF)
+        targetPosition = targetPositionTunable
         changePosition(
             applySensitivity(increment, 1.0, 0.2)
         )
         clampPosition(0, MAX_POSITION)
+        targetPositionTunable = targetPosition
         val power =
             pidfController.calculate(rightLift.currentPosition.toDouble(), targetPosition.toDouble())
 

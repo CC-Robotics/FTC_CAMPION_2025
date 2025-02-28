@@ -26,7 +26,7 @@ object LiftRTPSubsystem : PIDFSubsystem() {
     private val rightLift by subsystemCell { getHardware<DcMotorEx>("right_lift") }
     private val leftLift by subsystemCell { getHardware<DcMotorEx>("left_lift") }
 
-    const val MAX_POSITION = 150
+    private const val MAX_POSITION = 1500
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0

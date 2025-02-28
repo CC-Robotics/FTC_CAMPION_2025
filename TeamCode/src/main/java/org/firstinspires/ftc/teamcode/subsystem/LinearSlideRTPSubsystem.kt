@@ -24,7 +24,7 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
 
     private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    private const val MAX_POSITION = 600
+    private const val MAX_POSITION = 1000
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0

@@ -39,7 +39,7 @@ object ClawSubsystem : SubsystemCore() {
 //        wrist.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 //        axle.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
-        wrist.position = 0.0
+        wrist.position = 0.515
         claw.position = 0.0
         axle.position = 0.0
     }
