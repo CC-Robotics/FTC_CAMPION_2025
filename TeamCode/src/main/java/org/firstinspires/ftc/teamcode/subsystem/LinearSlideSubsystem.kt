@@ -47,6 +47,7 @@ object LinearSlideSubsystem : PIDFSubsystem() {
         targetPosition = 0
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
         dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
+
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         slide.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }

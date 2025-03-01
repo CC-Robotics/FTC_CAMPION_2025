@@ -38,6 +38,8 @@ object LiftSubsystem : PIDFSubsystem() {
 
     val extraPIDFController = PIDFController(0.0, 0.0, 0.0, 0.0)
 
+    var state = LiftState.LOW
+
     private const val MAX_POSITION = 1000
     private lateinit var dashboardTelemetry: MultipleTelemetry
     override val increment = 15
@@ -64,10 +66,10 @@ object LiftSubsystem : PIDFSubsystem() {
         rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }
 
-    fun update(increment: Double) {
+    fun update(increment: Double = 0.0) {
         // if you uncomment this, you can't tune anymore LOL
         // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
-        extraPIDFController.setPIDF(Config.LIFT_PIDF)
+        // extraPIDFController.setPIDF(Config.LIFT_PIDF)
         pidfController.setPIDF(Config.LIFT_PIDF)
         targetPosition = targetPositionTunable
         changePosition(
@@ -75,9 +77,11 @@ object LiftSubsystem : PIDFSubsystem() {
         )
         clampPosition(0, MAX_POSITION)
         targetPositionTunable = targetPosition
+
         val rightPower =
             pidfController.calculate(rightLift.currentPosition.toDouble(), targetPosition.toDouble())
-        val leftPower = extraPIDFController.calculate(leftLift.currentPosition.toDouble(), targetPosition.toDouble())
+
+        // val leftPower = extraPIDFController.calculate(leftLift.currentPosition.toDouble(), targetPosition.toDouble())
 
         leftLift.power = rightPower
         rightLift.power = rightPower
@@ -85,10 +89,19 @@ object LiftSubsystem : PIDFSubsystem() {
         telemetry(rightPower)
     }
 
+    fun setLiftState(state: LiftState) {
+        targetPosition = state.position
+        this.state = state
+    }
+
     fun telemetry(power: Double) {
         dashboardTelemetry.addData("Left Lift Position", leftLift.currentPosition)
         dashboardTelemetry.addData("Right Lift Position", rightLift.currentPosition)
         dashboardTelemetry.addData("Target Position", targetPosition)
+
+        dashboardTelemetry.addData("Left Power", leftLift.power)
+        dashboardTelemetry.addData("Right Power", rightLift.power)
+
         dashboardTelemetry.update()
         telemetry.addData("Left Stick Y", Mercurial.gamepad2.leftStickY.state)
         telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
@@ -96,5 +109,11 @@ object LiftSubsystem : PIDFSubsystem() {
         telemetry.addData("$subsystemName Position", targetPosition)
         telemetry.addData("Left Lift Power (real vs intended)", "${leftLift.power} vs $power")
         telemetry.addData("Right Lift Power (real vs intended)", "${rightLift.power} vs $power")
+    }
+
+    enum class LiftState(val position: Int) {
+        LOW(0),
+        MIDDLE(500),
+        HIGH(900)
     }
 }

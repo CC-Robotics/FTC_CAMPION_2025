@@ -25,7 +25,7 @@ object ClawSubsystem : SubsystemCore() {
     private val axle by subsystemCell { getHardware<Servo>("axle") }
     private val claw by subsystemCell { getHardware<Servo>("claw") }
 
-    private var state = ClawState.OPEN
+    var state = ClawState.OPEN
 
     override fun init(opMode: Wrapper) {
         wrist.controller.pwmEnable()
@@ -69,7 +69,7 @@ object ClawSubsystem : SubsystemCore() {
         }
     }
 
-    private fun updateClawState(state: ClawState) {
+    fun updateClawState(state: ClawState) {
         claw.position = state.position
         this.state = state
         telemetry.addData("Claw", state.name)
