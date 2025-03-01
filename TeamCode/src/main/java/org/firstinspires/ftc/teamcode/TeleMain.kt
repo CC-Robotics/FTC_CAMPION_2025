@@ -8,9 +8,7 @@ import org.firstinspires.ftc.teamcode.Config.Behavior.*
 import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LiftRTPSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LinearSlideRTPSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 
@@ -26,8 +24,8 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 //@FieldCentricDrivetrainSubsystem.Attach
 @VisionSubsystem.Attach
 @ClawSubsystem.Attach
-@LiftRTPSubsystem.Attach
-@LinearSlideRTPSubsystem.Attach
+@LiftSubsystem.Attach
+@LinearSlideSubsystem.Attach
 open class TeleMain : OpMode() {
     private lateinit var pidfAdjuster: PIDFAdjuster
     override fun init() {

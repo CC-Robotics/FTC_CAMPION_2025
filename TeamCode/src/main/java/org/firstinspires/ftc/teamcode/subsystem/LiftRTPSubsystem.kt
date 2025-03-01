@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystem
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
@@ -30,10 +31,21 @@ object LiftRTPSubsystem : PIDFSubsystem() {
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0
+
         leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+
+        rightLift.direction = DcMotorSimple.Direction.REVERSE
+
         leftLift.targetPosition = 0
         rightLift.targetPosition = 0
+
+        leftLift.power = 1.0
+        rightLift.power = 1.0
+
+        leftLift.targetPositionTolerance = 25
+        rightLift.targetPositionTolerance = 25
+
         leftLift.mode = DcMotor.RunMode.RUN_TO_POSITION
         rightLift.mode = DcMotor.RunMode.RUN_TO_POSITION
     }

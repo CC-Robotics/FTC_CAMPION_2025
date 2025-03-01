@@ -12,6 +12,7 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.utils.applySensitivity
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
@@ -35,6 +36,8 @@ object LiftSubsystem : PIDFSubsystem() {
     private val defaultValues = PIDFCoefficients(0.004, 0.02, 0.0, 0.025)
 //    private val extendedValues = PIDFValues(0.004, 0.02, 0.0, 0.025)
 
+    val extraPIDFController = PIDFController(0.0, 0.0, 0.0, 0.0)
+
     private const val MAX_POSITION = 1000
     private lateinit var dashboardTelemetry: MultipleTelemetry
     override val increment = 15
@@ -50,6 +53,7 @@ object LiftSubsystem : PIDFSubsystem() {
     override fun init(opMode: Wrapper) {
         targetPosition = 0
         pidfController.setPIDF(defaultValues)
+        extraPIDFController.setPIDF(defaultValues)
         dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
 
         rightLift.direction = DcMotorSimple.Direction.REVERSE
@@ -63,6 +67,7 @@ object LiftSubsystem : PIDFSubsystem() {
     fun update(increment: Double) {
         // if you uncomment this, you can't tune anymore LOL
         // pidfController.setPIDF(lerpPIDFValues(defaultValues, extendedValues, 1.0))
+        extraPIDFController.setPIDF(Config.LIFT_PIDF)
         pidfController.setPIDF(Config.LIFT_PIDF)
         targetPosition = targetPositionTunable
         changePosition(
@@ -70,13 +75,14 @@ object LiftSubsystem : PIDFSubsystem() {
         )
         clampPosition(0, MAX_POSITION)
         targetPositionTunable = targetPosition
-        val power =
+        val rightPower =
             pidfController.calculate(rightLift.currentPosition.toDouble(), targetPosition.toDouble())
+        val leftPower = extraPIDFController.calculate(leftLift.currentPosition.toDouble(), targetPosition.toDouble())
 
-        leftLift.power = power
-        rightLift.power = power
+        leftLift.power = rightPower
+        rightLift.power = rightPower
 
-        telemetry(power)
+        telemetry(rightPower)
     }
 
     fun telemetry(power: Double) {

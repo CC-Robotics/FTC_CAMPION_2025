@@ -24,14 +24,15 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
 
     private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    private const val MAX_POSITION = 1000
+    private const val MAX_POSITION = 10000
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0
         slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         slide.targetPosition = 0
         slide.mode = DcMotor.RunMode.RUN_TO_POSITION
-        slide.direction = DcMotorSimple.Direction.REVERSE
+        //slide.direction = DcMotorSimple.Direction.REVERSE
+        slide.power = 1.0
     }
 
     fun update(increment: Double) {
