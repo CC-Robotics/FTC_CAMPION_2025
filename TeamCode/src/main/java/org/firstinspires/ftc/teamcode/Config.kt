@@ -11,6 +11,8 @@ object Config {
     @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients(0.02, 0.002, 0.000001, 0.00005)
     @JvmField var LIFT_PIDF = PIDFCoefficients(0.008, 0.002, 0.0002, 0.0006)
 
+    @JvmField var VIKTEC_FF = 0.008
+
     @JvmField var usePIDF = true
 
     enum class Behavior {

@@ -19,8 +19,9 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 * do NOT modify any of the code below or for any other files.
 * */
 
+
 @Mercurial.Attach
-@DrivetrainSubsystem.Attach
+// @DrivetrainSubsystem.Attach
 //@FieldCentricDrivetrainSubsystem.Attach
 @VisionSubsystem.Attach
 @ClawSubsystem.Attach
@@ -85,11 +86,11 @@ open class TeleMain : OpMode() {
             MANUAL -> {
                 LiftSubsystem.update()
                 LinearSlideSubsystem.update(keybindTemplate.slide.state)
-                DrivetrainSubsystem.drive(
-                    keybindTemplate.movementX.state,
-                    keybindTemplate.movementY.state,
-                    keybindTemplate.movementRot.state
-                )
+//                DrivetrainSubsystem.drive(
+//                    keybindTemplate.movementX.state,
+//                    keybindTemplate.movementY.state,
+//                    keybindTemplate.movementRot.state
+//                )
             }
 
             COLLECTING -> {

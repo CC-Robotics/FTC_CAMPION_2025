@@ -17,7 +17,6 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
 
-// This aint ur unc's AI technology
 @Suppress("unused")
 object FieldCentricDrivetrainSubsystem : SubsystemCore() {
     @Target(AnnotationTarget.CLASS)
