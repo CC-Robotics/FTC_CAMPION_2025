@@ -40,11 +40,13 @@ object LinearSlideSubsystem : PIDFSubsystem() {
         get() = lerp(rangeOfLength.first, rangeOfLength.second, targetPosition.toDouble() / MAX_POSITION).cm
 
     val extraPIDF = PIDFController(0.0, 0.0, 0.0, 0.0)
+    override val increment = 20
 
     @JvmField var targetPositionTunable = 0
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0
+        targetPositionTunable = 0
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
         dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
 

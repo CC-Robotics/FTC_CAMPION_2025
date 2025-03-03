@@ -23,6 +23,9 @@ interface KeybindTemplate {
 
     val axleUp: BoundBooleanSupplier
     val axleDown: BoundBooleanSupplier
+
+    val ideallyExtend: BoundBooleanSupplier
+    val resetEncoder: BoundBooleanSupplier
 }
 
 class TwoDriverTemplate(gamepad1: BoundGamepad, gamepad2: BoundGamepad) : KeybindTemplate {
@@ -44,6 +47,9 @@ class TwoDriverTemplate(gamepad1: BoundGamepad, gamepad2: BoundGamepad) : Keybin
 
     override val axleUp = gamepad2.y
     override val axleDown = gamepad2.a
+    override val ideallyExtend = gamepad2.b
+
+    override val resetEncoder = gamepad2.rightBumper
 }
 
 class OneDriverTemplate(gamepad: BoundGamepad) : KeybindTemplate {
@@ -57,12 +63,15 @@ class OneDriverTemplate(gamepad: BoundGamepad) : KeybindTemplate {
 
     override val axleUp = gamepad.y
     override val axleDown = gamepad.a
+    override val ideallyExtend = gamepad.b
 
     override val liftUp = gamepad.rightBumper
     override val liftDown = gamepad.leftBumper
 
     override val wristUp = gamepad.dpadUp
     override val wristDown = gamepad.dpadDown
+
+    override val resetEncoder = gamepad.dpadLeft
 
     override val slide = BoundDoubleSupplier {
         gamepad.rightTrigger.state - gamepad.leftTrigger.state

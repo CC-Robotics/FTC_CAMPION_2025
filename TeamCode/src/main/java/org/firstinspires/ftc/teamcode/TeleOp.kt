@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
 import org.firstinspires.ftc.teamcode.Config.Behavior.*
-import org.firstinspires.ftc.teamcode.structures.PIDFAdjuster
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
@@ -21,7 +20,7 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 
 
 @Mercurial.Attach
-// @DrivetrainSubsystem.Attach
+@DrivetrainSubsystem.Attach
 //@FieldCentricDrivetrainSubsystem.Attach
 @VisionSubsystem.Attach
 @ClawSubsystem.Attach
@@ -30,6 +29,7 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 open class TeleMain : OpMode() {
     // private lateinit var pidfAdjuster: PIDFAdjuster
     private lateinit var keybindTemplate: KeybindTemplate
+    var resetting = false
 
     override fun init() {
         telemetry.addData("Status", "Initialized")
@@ -68,29 +68,40 @@ open class TeleMain : OpMode() {
         telemetry.update()
 
         var stateIndex = 0
-        val states = listOf(LiftSubsystem.LiftState.LOW, LiftSubsystem.LiftState.MIDDLE, LiftSubsystem.LiftState.HIGH)
+        val states = listOf(LiftSubsystem.LiftState.LOW, LiftSubsystem.LiftState.LOWMID, LiftSubsystem.LiftState.MIDDLE, LiftSubsystem.LiftState.HIGH)
 
-        keybindTemplate.liftUp.onTrue(Lambda("Lift Up").addExecute {
+        keybindTemplate.liftUp.onTrue(Lambda("Raise lift").addExecute {
             stateIndex = (stateIndex + 1) % states.size
             LiftSubsystem.setLiftState(states[stateIndex])
         })
 
-        keybindTemplate.liftDown.onTrue(Lambda("Lift Down").addExecute {
+        keybindTemplate.liftDown.onTrue(Lambda("Lower lift").addExecute {
             stateIndex = (stateIndex - 1) % states.size
             LiftSubsystem.setLiftState(states[stateIndex])
+        })
+
+        keybindTemplate.ideallyExtend.onTrue(Lambda("Ideally extend").addExecute {
+            LinearSlideSubsystem.targetPositionTunable = 3167
+            LiftSubsystem.targetPositionTunable = 190
+        })
+
+        keybindTemplate.resetEncoder.onTrue(Lambda("Reset Encoder").addExecute {
+            resetting = true
+            LiftSubsystem.setPower(Config.LIFT_PIDF.f / 3)
         })
     }
 
     override fun loop() {
         when (Config.behavior) {
             MANUAL -> {
-                LiftSubsystem.update()
+                if (LiftSubsystem.update(resetting))
+                    resetting = false
                 LinearSlideSubsystem.update(keybindTemplate.slide.state)
-//                DrivetrainSubsystem.drive(
-//                    keybindTemplate.movementX.state,
-//                    keybindTemplate.movementY.state,
-//                    keybindTemplate.movementRot.state
-//                )
+                DrivetrainSubsystem.drive(
+                    keybindTemplate.movementX.state,
+                    keybindTemplate.movementY.state,
+                    keybindTemplate.movementRot.state
+                )
             }
 
             COLLECTING -> {

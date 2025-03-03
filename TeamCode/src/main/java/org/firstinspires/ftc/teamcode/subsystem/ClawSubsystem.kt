@@ -41,7 +41,7 @@ object ClawSubsystem : SubsystemCore() {
 
         wrist.position = 0.515
         claw.position = 0.0
-        axle.position = 0.0
+        axle.position = 0.885
     }
 
     private fun moveWrist(amount: Double) {
@@ -96,7 +96,7 @@ object ClawSubsystem : SubsystemCore() {
     }
 
     enum class ClawState(val position: Double) {
-        OPEN(0.6),
-        CLOSED(0.8)
+        OPEN(0.4),
+        CLOSED(1.0)
     }
 }

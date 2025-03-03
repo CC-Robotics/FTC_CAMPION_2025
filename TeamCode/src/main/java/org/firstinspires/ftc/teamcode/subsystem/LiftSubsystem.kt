@@ -52,6 +52,7 @@ object LiftSubsystem : PIDFSubsystem() {
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0
+        targetPositionTunable = 0
         pidfController.setPIDF(defaultValues)
         dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
 
@@ -63,7 +64,26 @@ object LiftSubsystem : PIDFSubsystem() {
         rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
     }
 
-    fun update() {
+    fun setPower(double: Double) {
+        leftLift.power = double
+        rightLift.power = double
+    }
+
+    fun update(resetting: Boolean): Boolean {
+        if (resetting) {
+            if (targetPositionTunable <= 0) {
+                setPower(0.0)
+                Thread.sleep(300)
+                leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+                rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+                leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+                rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+                targetPositionTunable = 0
+                targetPosition = 0
+                return true
+            }
+            return false
+        }
         val motor = if (rightFocus) rightLift else leftLift
         pidfController.setPIDF(Config.LIFT_PIDF)
         targetPosition = targetPositionTunable
@@ -80,10 +100,12 @@ object LiftSubsystem : PIDFSubsystem() {
         rightLift.power = rightPower
 
         telemetry(rightPower)
+        return false
     }
 
     fun setLiftState(state: LiftState) {
         targetPosition = state.position
+        targetPositionTunable = state.position
         this.state = state
     }
 
@@ -106,7 +128,8 @@ object LiftSubsystem : PIDFSubsystem() {
 
     enum class LiftState(val position: Int) {
         LOW(0),
+        LOWMID(270),
         MIDDLE(500),
-        HIGH(900)
+        HIGH(785)
     }
 }
