@@ -69,6 +69,15 @@ object LiftSubsystem : PIDFSubsystem() {
         rightLift.power = double
     }
 
+    fun increment(pos: Double) {
+        targetPosition = targetPositionTunable
+        changePosition(
+            applySensitivity(pos, 1.0, 0.2)
+        )
+        clampPosition(0, MAX_POSITION)
+        targetPositionTunable = targetPosition
+    }
+
     fun update(resetting: Boolean): Boolean {
         if (resetting) {
             if (targetPositionTunable <= 0) {

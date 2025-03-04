@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
+import org.firstinspires.ftc.robotcore.external.Telemetry.Line
 import org.firstinspires.ftc.teamcode.Config.Behavior.*
 import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
@@ -89,11 +90,14 @@ open class TeleMain : OpMode() {
             resetting = true
             LiftSubsystem.setPower(Config.LIFT_PIDF.f / 3)
         })
+
+        keybindTemplate.lift.state
     }
 
     override fun loop() {
         when (Config.behavior) {
             MANUAL -> {
+                LiftSubsystem.increment(keybindTemplate.lift.state)
                 if (LiftSubsystem.update(resetting))
                     resetting = false
                 LinearSlideSubsystem.update(keybindTemplate.slide.state)
