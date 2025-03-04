@@ -1,7 +1,7 @@
 package vision
 
 import org.firstinspires.ftc.teamcode.Config
-import org.firstinspires.ftc.teamcode.utils.lerp
+import org.firstinspires.ftc.teamcode.util.lerp
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline

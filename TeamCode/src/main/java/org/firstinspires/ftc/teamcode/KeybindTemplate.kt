@@ -6,6 +6,7 @@ import dev.frozenmilk.mercurial.bindings.BoundGamepad
 
 interface KeybindTemplate {
     val togglePIDF: BoundBooleanSupplier
+    val toggleCollection: BoundBooleanSupplier
 
     val movementRot: BoundDoubleSupplier
     val movementX: BoundDoubleSupplier
@@ -31,6 +32,7 @@ interface KeybindTemplate {
 
 class TwoDriverTemplate(gamepad1: BoundGamepad, gamepad2: BoundGamepad) : KeybindTemplate {
     override val togglePIDF = gamepad2.back
+    override val toggleCollection = gamepad2.leftStickButton
 
     override val movementRot = gamepad1.rightStickX
     override val movementX = gamepad1.leftStickX
@@ -56,6 +58,7 @@ class TwoDriverTemplate(gamepad1: BoundGamepad, gamepad2: BoundGamepad) : Keybin
 
 class OneDriverTemplate(gamepad: BoundGamepad) : KeybindTemplate {
     override val togglePIDF = gamepad.back
+    override val toggleCollection = gamepad.leftStickButton
 
     override val movementRot = gamepad.leftStickX
     override val movementX = gamepad.rightStickX

@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.commands.Lambda
-import org.firstinspires.ftc.robotcore.external.Telemetry.Line
+import dev.frozenmilk.mercurial.commands.groups.Parallel
 import org.firstinspires.ftc.teamcode.Config.Behavior.*
-import org.firstinspires.ftc.teamcode.subsystem.ClawSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.HandSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.ArmSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 
 
@@ -22,109 +22,65 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 
 @Mercurial.Attach
 @DrivetrainSubsystem.Attach
-//@FieldCentricDrivetrainSubsystem.Attach
 @VisionSubsystem.Attach
-@ClawSubsystem.Attach
+@HandSubsystem.Attach
+@ArmSubsystem.Attach
 @LiftSubsystem.Attach
-@LinearSlideSubsystem.Attach
 open class TeleMain : OpMode() {
-    // private lateinit var pidfAdjuster: PIDFAdjuster
-    private lateinit var keybindTemplate: KeybindTemplate
-    var resetting = false
+    private lateinit var keybinds: KeybindTemplate
 
     override fun init() {
         telemetry.addData("Status", "Initialized")
 
-        keybindTemplate = TwoDriverTemplate(Mercurial.gamepad1, Mercurial.gamepad2)
+        keybinds = TwoDriverTemplate(Mercurial.gamepad1, Mercurial.gamepad2)
 
-        keybindTemplate.togglePIDF.onTrue(Lambda("Toggle PIDF").addExecute {
+        ArmSubsystem.defaultCommand = ArmSubsystem.update(keybinds)
+        LiftSubsystem.defaultCommand = LiftSubsystem.update(keybinds)
+        DrivetrainSubsystem.defaultCommand = DrivetrainSubsystem.driveByGamepad(keybinds)
+
+        keybinds.togglePIDF.onTrue(Lambda("Toggle PIDF").addExecute {
             Config.usePIDF = !Config.usePIDF
         })
 
-        keybindTemplate.toggleClaw.onTrue(Lambda("Toggle Claw").addExecute {
-            when (ClawSubsystem.state) {
-                ClawSubsystem.ClawState.OPEN -> ClawSubsystem.updateClawState(ClawSubsystem.ClawState.CLOSED)
-                ClawSubsystem.ClawState.CLOSED -> ClawSubsystem.updateClawState(ClawSubsystem.ClawState.OPEN)
+        keybinds.toggleClaw.onTrue(HandSubsystem.toggleClaw())
+
+        keybinds.toggleCollection.onTrue(Lambda("Toggle collection").addExecute {
+            when (Config.behavior) {
+                MANUAL -> Config.behavior = COLLECTING
+                COLLECTING -> Config.behavior = MANUAL
+                RUN_TO_VISION_POSITION -> {}
             }
         })
 
-//        Mercurial.gamepad2.a.onTrue(Lambda("Change behavior").addExecute {
-//            when (Config.behavior) {
-//                MANUAL -> Config.behavior = RUN_TO_VISION_POSITION
-//                COLLECTING -> Config.behavior = MANUAL
-//                RUN_TO_VISION_POSITION -> {}
-//            }
-//        })
+        keybinds.axleDown.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, -0.005))
+        keybinds.axleUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, 0.005))
 
-//        Mercurial.gamepad1.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, -0.005))
-//        Mercurial.gamepad1.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, 0.005))
+        keybinds.wristUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.WRIST, 0.005))
+        keybinds.wristDown.whileTrue(
+            HandSubsystem.incrementPosition(
+                HandSubsystem.ServoType.WRIST, -0.005
+            )
+        )
 
-        keybindTemplate.axleDown.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, -0.005))
-        keybindTemplate.axleUp.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.AXLE, 0.005))
+        keybinds.ideallyExtend.onTrue(
+            Parallel(
+                ArmSubsystem.goTo(190), LiftSubsystem.goTo(3167)
+            )
+        )
 
-        keybindTemplate.wristUp.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, 0.005))
-        keybindTemplate.wristDown.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.WRIST, -0.005))
-
-        // pidfAdjuster = PIDFAdjuster.createAndAttach(telemetry, Mercurial.gamepad2)
-        telemetry.update()
-
-        var stateIndex = 0
-        val states = listOf(LiftSubsystem.LiftState.LOW, LiftSubsystem.LiftState.LOWMID, LiftSubsystem.LiftState.MIDDLE, LiftSubsystem.LiftState.HIGH)
-
-        keybindTemplate.liftUp.onTrue(Lambda("Raise lift").addExecute {
-            stateIndex = (stateIndex + 1) % states.size
-            LiftSubsystem.setLiftState(states[stateIndex])
-        })
-
-        keybindTemplate.liftDown.onTrue(Lambda("Lower lift").addExecute {
-            stateIndex = (stateIndex - 1) % states.size
-            LiftSubsystem.setLiftState(states[stateIndex])
-        })
-
-        keybindTemplate.ideallyExtend.onTrue(Lambda("Ideally extend").addExecute {
-            LinearSlideSubsystem.targetPositionTunable = 3167
-            LiftSubsystem.targetPositionTunable = 190
-        })
-
-        keybindTemplate.resetEncoder.onTrue(Lambda("Reset Encoder").addExecute {
-            resetting = true
-            LiftSubsystem.setPower(Config.LIFT_PIDF.f / 3)
-        })
-
-        keybindTemplate.lift.state
+        keybinds.resetEncoder.onTrue(ArmSubsystem.recalibrateEncoders())
     }
 
     override fun loop() {
         when (Config.behavior) {
-            MANUAL -> {
-                LiftSubsystem.increment(keybindTemplate.lift.state)
-                if (LiftSubsystem.update(resetting))
-                    resetting = false
-                LinearSlideSubsystem.update(keybindTemplate.slide.state)
-                DrivetrainSubsystem.drive(
-                    keybindTemplate.movementX.state,
-                    keybindTemplate.movementY.state,
-                    keybindTemplate.movementRot.state
-                )
-            }
-
-            COLLECTING -> {
-                // val sample = VisionSubsystem.getBestContour() ?: return
-            }
-
-            RUN_TO_VISION_POSITION -> {
-                Config.behavior = MANUAL
-                // LinearSlideSubsystem.setPosition(SlidePosition.VISION_POSITION)
-//                if (LinearSlideSubsystem.isBasicallyAt(SlidePosition.VISION_POSITION)) {
-//                    Config.behavior = COLLECTING
-//                }
-            }
+            MANUAL -> {}
+            COLLECTING -> { Config.behavior = MANUAL}
+            RUN_TO_VISION_POSITION -> { Config.behavior = MANUAL }
         }
-        // pidfAdjuster.updateTelemetry()
     }
 }
 
-@TeleOp(name = "Red | Tele - N/A | Main", group = "2024-25 OpCodes")
+@TeleOp(name = "Red Tele 2", group = "2024-25 OpCodes")
 class RedTeleMain : TeleMain() {
     override fun init() {
         super.init()
@@ -132,10 +88,15 @@ class RedTeleMain : TeleMain() {
     }
 }
 
-@TeleOp(name = "Blue | Tele - N/A | Main", group = "2024-25 OpCodes")
+@TeleOp(name = "Blue Tele 2", group = "2024-25 OpCodes")
 class BlueTeleMain : TeleMain() {
     override fun init() {
         super.init()
         Config.allianceColour = Config.SampleColor.BLUE
     }
 }
+
+/*
+Mercurial.gamepad1.x.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, -0.005))
+Mercurial.gamepad1.b.whileTrue(ClawSubsystem.moveServoL(ClawSubsystem.ServoType.CLAW, 0.005))
+* */

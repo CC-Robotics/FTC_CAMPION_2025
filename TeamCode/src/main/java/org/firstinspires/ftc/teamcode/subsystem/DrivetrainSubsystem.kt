@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
+import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
+import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 import kotlin.math.abs
@@ -45,6 +47,12 @@ object DrivetrainSubsystem : SubsystemCore() {
         fR.power = frontRightPower
         bR.power = backRightPower
     }
+
+    fun driveByGamepad(keybinds: KeybindTemplate) = Lambda("Drive with controller")
+        .addRequirements(this::class.java)
+        .addExecute {
+            drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state)
+        }
 
     fun drive(x: Double, y: Double, rx: Double) {
         applyPower(x * 1.1, -y, rx)

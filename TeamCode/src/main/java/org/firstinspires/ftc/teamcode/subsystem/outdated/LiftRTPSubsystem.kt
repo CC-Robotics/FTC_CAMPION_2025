@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystem
+package org.firstinspires.ftc.teamcode.subsystem.outdated
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -8,7 +8,7 @@ import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.Mercurial
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.utils.applySensitivity
+import org.firstinspires.ftc.teamcode.util.applySensitivity
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import java.lang.annotation.Inherited
 
@@ -51,7 +51,7 @@ object LiftRTPSubsystem : PIDFSubsystem() {
     }
 
     fun update(increment: Double) {
-        changePosition(
+        incrementPosition(
             applySensitivity(increment, 1.0, 0.2)
         )
         clampPosition(0, MAX_POSITION)

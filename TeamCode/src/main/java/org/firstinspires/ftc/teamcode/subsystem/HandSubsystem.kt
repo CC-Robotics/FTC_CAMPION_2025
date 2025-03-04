@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
-import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
@@ -8,10 +7,11 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
-import org.firstinspires.ftc.teamcode.utils.round
+import org.firstinspires.ftc.teamcode.util.Util
+import org.firstinspires.ftc.teamcode.util.round
 import java.lang.annotation.Inherited
 
-object ClawSubsystem : SubsystemCore() {
+object HandSubsystem : SubsystemCore() {
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
@@ -25,68 +25,59 @@ object ClawSubsystem : SubsystemCore() {
     private val axle by subsystemCell { getHardware<Servo>("axle") }
     private val claw by subsystemCell { getHardware<Servo>("claw") }
 
-    var state = ClawState.OPEN
+    private var _clawState = ClawState.OPEN
+    private var clawState: ClawState
+        get() = _clawState
+        set(state) {
+            claw.position = state.position
+            this._clawState = state
+            telemetry.addData("Claw", state.name)
+        }
 
     override fun init(opMode: Wrapper) {
         wrist.controller.pwmEnable()
         claw.controller.pwmEnable()
         axle.controller.pwmEnable()
-//        claw.setPwmEnable()
-//        wrist.setPwmEnable()
-//        axle.setPwmEnable()
-//
-//        claw.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
-//        wrist.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
-//        axle.pwmRange = PwmControl.PwmRange(500.0, 2500.0)
 
         wrist.position = 0.515
         claw.position = 0.0
         axle.position = 0.885
     }
 
-    private fun moveWrist(amount: Double) {
-        wrist.position += amount
-    }
-
-    private fun moveClaw(amount: Double) {
-        claw.position += amount
-    }
-
-    private fun moveAxel(amount: Double) {
-        axle.position += amount
-    }
-
-    fun moveServoL(which: ServoType, multiplier: Double): Lambda {
+    fun incrementPosition(which: ServoType, amount: Double): Lambda {
         return when (which) {
             ServoType.WRIST -> Lambda("Move Wrist").addRequirements(this::class.java)
-                .addExecute { moveWrist(multiplier) }
+                .addExecute { wrist.position += amount }
 
             ServoType.AXLE -> Lambda("Move Axel").addRequirements(this::class.java)
-                .addExecute { moveAxel(multiplier) }
+                .addExecute {axle.position += amount }
 
             ServoType.CLAW -> Lambda("Move Claw").addRequirements(this::class.java)
-                .addExecute { moveClaw(multiplier) }
+                .addExecute { claw.position += amount }
         }
     }
 
-    fun updateClawState(state: ClawState) {
-        claw.position = state.position
-        this.state = state
-        telemetry.addData("Claw", state.name)
-    }
-
-    fun updateClawStateL(state: ClawState): Lambda {
-        return Lambda("Update Claw State")
-            .addRequirements(ClawSubsystem)
-            .addExecute {
-                updateClawState(state)
+    fun toggleClaw() = Lambda("Toggle claw")
+        .addRequirements(this::class.java)
+        .addExecute {
+            clawState = when (clawState) {
+                ClawState.OPEN -> ClawState.CLOSED
+                ClawState.CLOSED -> ClawState.OPEN
             }
-    }
+        }
+
+//    fun setClawState(state: ClawState): Lambda {
+//        return Lambda("Update Claw State")
+//            .addRequirements(HandSubsystem)
+//            .addExecute {
+//                updateClawState(state)
+//            }
+//    }
 
     override fun periodic(opMode: Wrapper) {
-        telemetry.addData("Wrist", wrist.position.round(3))
-        telemetry.addData("Claw", claw.position.round(3))
-        telemetry.addData("Axle", axle.position.round(3))
+        Util.telemetry.addData("Wrist", wrist.position.round(3))
+        Util.telemetry.addData("Claw", claw.position.round(3))
+        Util.telemetry.addData("Axle", axle.position.round(3))
     }
 
     enum class ServoType {

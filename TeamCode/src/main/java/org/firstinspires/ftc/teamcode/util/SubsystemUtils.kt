@@ -1,11 +1,4 @@
-package org.firstinspires.ftc.teamcode.utils
-
-import dev.frozenmilk.util.units.distance.Distance
-import dev.frozenmilk.util.units.distance.cm
-import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
-import org.firstinspires.ftc.teamcode.subsystem.LinearSlideSubsystem
-import kotlin.math.cos
-import kotlin.math.sqrt
+package org.firstinspires.ftc.teamcode.util
 
 //fun calculateEndEffectorDistance(lift: LiftSubsystem, slide: LinearSlideSubsystem): Distance {
 //    val angleRadians = lift.angle.intoRadians().value
