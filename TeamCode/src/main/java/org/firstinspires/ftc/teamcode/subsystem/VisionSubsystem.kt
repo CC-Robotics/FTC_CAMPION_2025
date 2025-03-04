@@ -76,10 +76,15 @@ object VisionSubsystem : SubsystemCore() {
     fun getBestContour(): AnalyzedContour? {
         val contours = getAnalyzedContours()
         if (contours.isEmpty()) return null
-        return if (contours[0].color == Config.allianceColour) {
-            getLargestAnalyzedContour(contours.filter { it.color == Config.allianceColour })
+
+        val oppositeColor = if (Config.allianceColour == Config.SampleColor.RED) Config.SampleColor.BLUE else Config.SampleColor.RED
+        val filteredContours = contours.filter { it.color != oppositeColor }
+        if (filteredContours.isEmpty()) return null
+
+        return if (filteredContours[0].color == Config.allianceColour) {
+            getLargestAnalyzedContour(filteredContours.filter { it.color == Config.allianceColour })
         } else {
-            getLargestAnalyzedContour(contours)
+            getLargestAnalyzedContour(filteredContours)
         }
     }
 
