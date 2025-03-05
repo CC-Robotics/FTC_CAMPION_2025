@@ -35,7 +35,7 @@ object ArmSubsystem : PIDFSubsystem() {
     private val right by subsystemCell { getHardware<DcMotorEx>("right_lift") }
     private val left by subsystemCell { getHardware<DcMotorEx>("left_lift") }
 
-    private const val MAX_POSITION = 1000
+    private const val MAX_POSITION = 1250
 
     private lateinit var dual: Dual
 
