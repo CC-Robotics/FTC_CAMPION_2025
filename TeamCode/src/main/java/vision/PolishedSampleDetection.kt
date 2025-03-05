@@ -69,10 +69,10 @@ class PolishedSampleDetection : OpenCvPipeline() {
 
         // Refined ranges for the color blue
         val lowerBlue1 = Scalar(100.0, 100.0, 63.0)
-        val upperBlue1 = Scalar(130.0, 255.0, 255.0)
+        val upperBlue1 = Scalar(135.0, 255.0, 255.0)
 
         // Refined ranges for the color yellow
-        val lowerYellow1 = Scalar(20.0, 100.0, 100.0) // Darker yellow
+        val lowerYellow1 = Scalar(25.0, 150.0, 95.0) // Darker yellow
         val upperYellow1 = Scalar(30.0, 255.0, 255.0) // Lighter yellow
 
 
@@ -113,7 +113,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
             masks[0].copyTo(combinedMask)
         }
         for (i in 1 until masks.size) {
-            Core.addWeighted(combinedMask, 1.0, masks[i], 1.0, 0.0, combinedMask)
+            Core.bitwise_or(combinedMask, masks[i], combinedMask)
         }
         return combinedMask
     }
