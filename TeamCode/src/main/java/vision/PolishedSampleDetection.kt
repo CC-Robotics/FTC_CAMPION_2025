@@ -173,7 +173,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
             val area = Imgproc.contourArea(contour, false)
 
             // Skip small contours by setting a minimum area threshold
-            if (area < 2500 || area > 50000) continue // Adjusted from 5000 to 1000
+           //  if (area < 2500 || area > 50000) continue // Adjusted from 5000 to 1000
 
             // Calculate the moments of the contour
             val moments = Imgproc.moments(contour)
