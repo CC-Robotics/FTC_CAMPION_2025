@@ -110,15 +110,13 @@ object ArmSubsystem : PIDFSubsystem() {
     }
 
     fun update(keybinds: KeybindTemplate): Lambda {
-        return Lambda("Update Lift PIDF")
-            .addRequirements(this::class.java)
+        return Lambda("Update Arm PIDF")
             .addExecute {
                 incrementPosition(keybinds.lift.state)
                 updatePIDF()
                 if (logTelemetry)
                     log()
             }
-            .setInterruptible(true)
     }
 
     private fun log() {
