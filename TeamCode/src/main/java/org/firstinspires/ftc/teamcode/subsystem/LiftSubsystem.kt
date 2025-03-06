@@ -64,7 +64,7 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     fun goTo(target: Int): Lambda {
-        return Lambda("Go to ${ArmSubsystem.subsystemName} position")
+        return Lambda("Go to $subsystemName position")
             .addRequirements(this::class.java)
             .addExecute {
                 setPosition(target)

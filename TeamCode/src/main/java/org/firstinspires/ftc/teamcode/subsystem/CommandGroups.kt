@@ -14,8 +14,8 @@ object CommandGroups {
             HandSubsystem.goTo(HandSubsystem.ServoType.AXLE, AXLE_INIT)
         )
     }
-    private fun positionForCollection(): Command {
-        return Sequential(
+    fun positionForCollection(): Command {
+        return Parallel(
             ArmSubsystem.goTo(437),
             LiftSubsystem.goTo(752),
             Sequential(
