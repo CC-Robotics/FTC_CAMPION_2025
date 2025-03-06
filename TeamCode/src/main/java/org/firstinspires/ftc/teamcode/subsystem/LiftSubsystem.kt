@@ -30,7 +30,7 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    override val sensitivity = 20
+    override val sensitivity = 40
 
     @JvmField var targetPositionTunable = 0
 
@@ -67,7 +67,7 @@ object LiftSubsystem : PIDFSubsystem() {
         return Lambda("Go to ${ArmSubsystem.subsystemName} position")
             .addRequirements(this::class.java)
             .addExecute {
-                LiftSubsystem.setPosition(target)
+                setPosition(target)
             }
             .setFinish(this::isAtTarget)
     }

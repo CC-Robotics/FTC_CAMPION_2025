@@ -29,6 +29,7 @@ object VisionSubsystem : SubsystemCore() {
     private lateinit var camera: OpenCvWebcam
     private lateinit var pipeline: PolishedSampleDetection
 
+    var cachedBestContour: AnalyzedContour? = null
     val camName by subsystemCell { getHardware<WebcamName>("CrocCam") }
 
     private fun createCamera(): OpenCvWebcam {
@@ -65,12 +66,22 @@ object VisionSubsystem : SubsystemCore() {
         pipeline = PolishedSampleDetection()
     }
 
+    override fun periodic(opMode: Wrapper) {
+        getBestContourAndCache()
+    }
+
     private fun getAnalyzedContours(min: Int = 0): List<AnalyzedContour> {
         return organizeContours(pipeline.getAnalyzedContours(), Config.allianceColour, min)
     }
 
     private fun getLargestAnalyzedContour(preExisting: List<AnalyzedContour>?, min: Int = 0): AnalyzedContour? {
         return (preExisting ?: getAnalyzedContours(min)).maxByOrNull { it.area }
+    }
+
+    fun getBestContourAndCache(): AnalyzedContour? {
+        val bestContour = getBestContour()
+        cachedBestContour = bestContour
+        return bestContour
     }
 
     fun getBestContour(): AnalyzedContour? {

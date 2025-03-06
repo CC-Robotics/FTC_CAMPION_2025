@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Config.Behavior.*
 import org.firstinspires.ftc.teamcode.subsystem.HandSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.DrivetrainSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.ArmSubsystem
+import org.firstinspires.ftc.teamcode.subsystem.CommandGroups
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
 
@@ -43,14 +44,9 @@ open class TeleMain : OpMode() {
         })
 
         keybinds.toggleClaw.onTrue(HandSubsystem.toggleClaw())
+        keybinds.retract.onTrue(CommandGroups.retract())
 
-        keybinds.toggleCollection.onTrue(Lambda("Toggle collection").addExecute {
-            when (Config.behavior) {
-                MANUAL -> Config.behavior = COLLECTING
-                COLLECTING -> Config.behavior = MANUAL
-                RUN_TO_VISION_POSITION -> {}
-            }
-        })
+        keybinds.toggleCollection.onTrue(CommandGroups.collect(keybinds))
 
         keybinds.axleDown.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, -0.005))
         keybinds.axleUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, 0.005))
@@ -69,6 +65,8 @@ open class TeleMain : OpMode() {
         )
 
         keybinds.resetEncoder.onTrue(ArmSubsystem.recalibrateEncoders())
+
+        VisionSubsystem.getBestContourAndCache()
     }
 
     override fun loop() {

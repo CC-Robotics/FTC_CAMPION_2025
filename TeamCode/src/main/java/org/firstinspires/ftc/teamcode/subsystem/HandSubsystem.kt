@@ -21,12 +21,12 @@ object HandSubsystem : SubsystemCore() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    private val wrist by subsystemCell { getHardware<Servo>("wrist") }
-    private val axle by subsystemCell { getHardware<Servo>("axle") }
+    val wrist by subsystemCell { getHardware<Servo>("wrist") }
+    val axle by subsystemCell { getHardware<Servo>("axle") }
     private val claw by subsystemCell { getHardware<Servo>("claw") }
 
     private var _clawState = ClawState.OPEN
-    private var clawState: ClawState
+    var clawState: ClawState
         get() = _clawState
         set(state) {
             claw.position = state.position
@@ -34,14 +34,18 @@ object HandSubsystem : SubsystemCore() {
             telemetry.addData("Claw", state.name)
         }
 
+    private const val WRIST_INIT = 0.515
+    private const val CLAW_INIT = 0.0
+    const val AXLE_INIT = 0.885
+
     override fun init(opMode: Wrapper) {
         wrist.controller.pwmEnable()
         claw.controller.pwmEnable()
         axle.controller.pwmEnable()
 
-        wrist.position = 0.515
-        claw.position = 0.0
-        axle.position = 0.885
+        wrist.position = WRIST_INIT
+        claw.position = CLAW_INIT
+        axle.position = AXLE_INIT
     }
 
     fun incrementPosition(which: ServoType, amount: Double): Lambda {
@@ -55,6 +59,27 @@ object HandSubsystem : SubsystemCore() {
             ServoType.CLAW -> Lambda("Move Claw").addRequirements(this::class.java)
                 .addExecute { claw.position += amount }
         }
+    }
+
+    fun goTo(which: ServoType, target: Double): Lambda {
+        return when (which) {
+            ServoType.WRIST -> Lambda("Move Wrist").addRequirements(this::class.java)
+                .addExecute { wrist.position = target }
+
+            ServoType.AXLE -> Lambda("Move Axel").addRequirements(this::class.java)
+                .addExecute { axle.position = target }
+
+            ServoType.CLAW -> Lambda("Move Claw").addRequirements(this::class.java)
+                .addExecute { claw.position = target }
+        }
+    }
+
+    fun updateClawState(clawState: ClawState): Lambda {
+        return Lambda("Full Update")
+            .addRequirements(this::class.java)
+            .addExecute {
+                this.clawState = clawState
+            }
     }
 
     fun toggleClaw() = Lambda("Toggle claw")
