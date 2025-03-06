@@ -14,15 +14,16 @@ object CommandGroups {
             HandSubsystem.goTo(HandSubsystem.ServoType.AXLE, AXLE_INIT)
         )
     }
-    fun positionForCollection(): Command {
+
+    fun positionForCollection(): Parallel {
         return Parallel(
-            ArmSubsystem.goTo(437),
             LiftSubsystem.goTo(752),
+            ArmSubsystem.goTo(437),
             Sequential(
                 HandSubsystem.goTo(HandSubsystem.ServoType.WRIST, 0.515),
                 HandSubsystem.goTo(HandSubsystem.ServoType.AXLE, 0.885),
                 HandSubsystem.updateClawState(HandSubsystem.ClawState.CLOSED)
-            ),
+            )
         )
     }
 
