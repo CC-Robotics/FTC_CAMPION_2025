@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.basically
+import org.firstinspires.ftc.teamcode.util.proxiedCommand
 import org.firstinspires.ftc.teamcode.util.structures.Dual
 import org.firstinspires.ftc.teamcode.util.structures.Timer
 import java.lang.annotation.Inherited
@@ -84,17 +85,17 @@ object ArmSubsystem : PIDFSubsystem() {
     fun recalibrateEncoders(): Sequential {
         val timer = Timer()
         return Sequential(
-            Lambda("Gently set down lift")
-                .addRequirements(this::class.java)
+            proxiedCommand( Lambda("Gently set down lift")
+                .addRequirements(ArmSubsystem)
                 .addExecute {
                     if (right.currentPosition > 450) {
                         dual.power = pidfController.f / 3
                         timer.start(right.currentPosition.toLong() - 100)
                     }
                 }
-                .setFinish { timer.isFinished() },
-            Lambda("Settle lift and reset")
-                .addRequirements(this::class.java)
+                .setFinish { timer.isFinished() }),
+            proxiedCommand( Lambda("Settle lift and reset")
+                .addRequirements(ArmSubsystem)
                 .addExecute {
                     dual.power = 0.0
                     timer.start(200)
@@ -103,7 +104,7 @@ object ArmSubsystem : PIDFSubsystem() {
                 .addEnd {
                     dual.reset()
                     setTarget(0)
-                }
+                })
         )
     }
 

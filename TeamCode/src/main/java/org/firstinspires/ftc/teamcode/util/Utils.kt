@@ -4,9 +4,13 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.frozenmilk.dairy.core.FeatureRegistrar
+import dev.frozenmilk.mercurial.Mercurial.isScheduled
+import dev.frozenmilk.mercurial.commands.Command
+import dev.frozenmilk.mercurial.commands.Lambda
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
+
 
 object Util {
     @JvmField val telemetry = MultipleTelemetry(FtcDashboard.getInstance().telemetry, FeatureRegistrar.activeOpMode.telemetry)
@@ -67,4 +71,18 @@ fun clampInt(x: Int, lo: Int, hi: Int): Int {
         return hi
     }
     return x
+}
+
+fun forkProxy(toCall: Command): Command {
+    return Lambda("forkProxy")
+        .setInit {
+            toCall.cancel()
+            toCall.schedule()
+        }
+}
+
+fun proxiedCommand(command: Command): Lambda {
+    return Lambda("Proxied $command")
+        .setInit(command::schedule)
+        .setFinish { !isScheduled(command) }
 }

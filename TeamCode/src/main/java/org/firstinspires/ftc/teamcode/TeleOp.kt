@@ -12,6 +12,8 @@ import org.firstinspires.ftc.teamcode.subsystem.ArmSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.CommandGroups
 import org.firstinspires.ftc.teamcode.subsystem.LiftSubsystem
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem
+import org.firstinspires.ftc.teamcode.util.forkProxy
+import org.firstinspires.ftc.teamcode.util.proxiedCommand
 
 
 /*
@@ -47,14 +49,40 @@ open class TeleMain : OpMode() {
         keybinds.retract.onTrue(CommandGroups.retract())
         keybinds.toggleCollection.onTrue(CommandGroups.collect(keybinds))
 
-        keybinds.axleDown.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, -0.005))
-        keybinds.axleUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, 0.005))
+        keybinds.axleDown.whileTrue(
+//            forkProxy(
+//            HandSubsystem.incrementPosition(
+//                HandSubsystem.ServoType.AXLE,
+//                -0.005
+//            ))
+            Lambda("hhkjdh 4").addExecute {
+                HandSubsystem.axle.position -= 0.05
+            }
+        )
+        keybinds.axleUp.whileTrue(
+//            forkProxy(
+//            HandSubsystem.incrementPosition(
+//                HandSubsystem.ServoType.AXLE,
+//                0.005
+//            ))
+            Lambda("hhkjdh 3").addExecute {
+                HandSubsystem.axle.position += 0.05
+            }
+        )
 
-        keybinds.wristUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.WRIST, 0.005))
+        keybinds.wristUp.whileTrue(
+            Lambda("hhkjdhj 2").addExecute {
+                HandSubsystem.wrist.position += 0.05
+            }
+        )
         keybinds.wristDown.whileTrue(
-            HandSubsystem.incrementPosition(
-                HandSubsystem.ServoType.WRIST, -0.005
-            )
+            Lambda("hhkjdhj").addExecute {
+                HandSubsystem.wrist.position -= 0.05
+            }
+//            forkProxy(
+//            HandSubsystem.incrementPosition(
+//                HandSubsystem.ServoType.WRIST, -0.005
+//            ))
         )
 
         keybinds.ideallyExtend.onTrue(
@@ -71,8 +99,13 @@ open class TeleMain : OpMode() {
     override fun loop() {
         when (Config.behavior) {
             MANUAL -> {}
-            COLLECTING -> { Config.behavior = MANUAL}
-            RUN_TO_VISION_POSITION -> { Config.behavior = MANUAL }
+            COLLECTING -> {
+                Config.behavior = MANUAL
+            }
+
+            RUN_TO_VISION_POSITION -> {
+                Config.behavior = MANUAL
+            }
         }
     }
 }

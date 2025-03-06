@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.teamcode.Config
 import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
-import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.basically
 import java.lang.annotation.Inherited
@@ -29,7 +28,7 @@ object LiftSubsystem : PIDFSubsystem() {
 
     override val subsystemName = "Slide"
 
-    private val slide by subsystemCell { getHardware<DcMotorEx>("slide") }
+    private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
     override val sensitivity = 40
 
@@ -41,41 +40,43 @@ object LiftSubsystem : PIDFSubsystem() {
         targetPositionTunable = 0
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
 
-        slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        slide.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        slide.setCurrentAlert(7.5, CurrentUnit.AMPS)
+        lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        lift.setCurrentAlert(8.4, CurrentUnit.AMPS)
     }
 
     override fun setTarget(position: Int) {
-        targetPosition = position
         targetPositionTunable = position
+        targetPosition = position
     }
 
     fun isAtTarget(): Boolean {
-        return basically(slide.currentPosition, targetPosition, sensitivity)
+        return basically(lift.currentPosition, targetPosition, sensitivity)
     }
 
-    fun retract() = Lambda("Retract Slide")
-        .addRequirements(LiftSubsystem)
-        .addInit { slide.power = -1.0 }
-        .setFinish { slide.isOverCurrent }
-        .setEnd { interrupted ->
-            slide.power = 0.0
-            if (interrupted) {
-                slide.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-                slide.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            }
-        }
+    fun retract() = goTo(0)
+
+//    fun retract() = Lambda("Retract Slide")
+//        .addRequirements(LiftSubsystem)
+//        .addInit { lift.power = -1.0 }
+//        .setFinish { lift.isOverCurrent }
+//        .setEnd { interrupted ->
+//            lift.power = 0.0
+//            if (interrupted) {
+//                lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+//                lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+//            }
+//        }
 
     fun goTo(target: Int) = Lambda("Go to $subsystemName position")
-            .setExecute { setTarget(target) }
-            .setFinish(LiftSubsystem::isAtTarget)
+        .setExecute { setTarget(target) }
+        .setFinish(LiftSubsystem::isAtTarget)
 
     private fun updatePIDF() {
         pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
         val power =
-            pidfController.calculate(slide.currentPosition.toDouble(), targetPosition.toDouble())
-        slide.power = power
+            pidfController.calculate(lift.currentPosition.toDouble(), targetPosition.toDouble())
+        lift.power = power
     }
 
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
@@ -89,7 +90,8 @@ object LiftSubsystem : PIDFSubsystem() {
         .setFinish { false }
 
     private fun log() {
-        Util.telemetry.addData("Slide Position", slide.currentPosition)
+        Util.telemetry.addData("current", lift.getCurrent(CurrentUnit.AMPS))
+        Util.telemetry.addData("Slide Position", lift.currentPosition)
         Util.telemetry.addData("Slide Target Position", targetPosition)
         Util.telemetry.update()
     }

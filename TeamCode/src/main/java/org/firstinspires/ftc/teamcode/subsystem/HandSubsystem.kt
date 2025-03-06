@@ -50,40 +50,28 @@ object HandSubsystem : SubsystemCore() {
 
     fun incrementPosition(which: ServoType, amount: Double): Lambda {
         return when (which) {
-            ServoType.WRIST -> Lambda("Move Wrist").addRequirements(this::class.java)
-                .addExecute { wrist.position += amount }
-
-            ServoType.AXLE -> Lambda("Move Axel").addRequirements(this::class.java)
-                .addExecute {axle.position += amount }
-
-            ServoType.CLAW -> Lambda("Move Claw").addRequirements(this::class.java)
-                .addExecute { claw.position += amount }
+            ServoType.WRIST -> Lambda("Incr Wrist").addExecute { wrist.position += amount }
+            ServoType.AXLE -> Lambda("Incr Axle").addExecute { axle.position += amount }
+            ServoType.CLAW -> Lambda("Incr Claw").addExecute { claw.position += amount }
         }
     }
 
     fun goTo(which: ServoType, target: Double): Lambda {
         return when (which) {
-            ServoType.WRIST -> Lambda("Move Wrist").addRequirements(this::class.java)
-                .addExecute { wrist.position = target }
-
-            ServoType.AXLE -> Lambda("Move Axel").addRequirements(this::class.java)
-                .addExecute { axle.position = target }
-
-            ServoType.CLAW -> Lambda("Move Claw").addRequirements(this::class.java)
-                .addExecute { claw.position = target }
+            ServoType.WRIST -> Lambda("Move Wrist").addExecute { wrist.position = target }
+            ServoType.AXLE -> Lambda("Move Axle").addExecute { axle.position = target }
+            ServoType.CLAW -> Lambda("Move Claw").addExecute { claw.position = target }
         }
     }
 
     fun updateClawState(clawState: ClawState): Lambda {
         return Lambda("Full Update")
-            .addRequirements(this::class.java)
             .addExecute {
                 this.clawState = clawState
             }
     }
 
     fun toggleClaw() = Lambda("Toggle claw")
-        .addRequirements(this::class.java)
         .addExecute {
             clawState = when (clawState) {
                 ClawState.OPEN -> ClawState.CLOSED
