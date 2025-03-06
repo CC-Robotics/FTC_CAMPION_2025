@@ -79,11 +79,13 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
+        .addRequirements(this::class.java)
         .addExecute {
             incrementPosition(keybinds.slide.state)
             updatePIDF()
             log()
         }
+        .setInterruptible(true)
 
     private fun log() {
         Util.telemetry.addData("Slide Position", slide.currentPosition)

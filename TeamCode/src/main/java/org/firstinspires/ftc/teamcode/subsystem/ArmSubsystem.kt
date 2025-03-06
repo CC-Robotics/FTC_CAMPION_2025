@@ -119,7 +119,6 @@ object ArmSubsystem : PIDFSubsystem() {
                     log()
             }
             .setInterruptible(true)
-            .setFinish { false }
     }
 
     private fun log() {
