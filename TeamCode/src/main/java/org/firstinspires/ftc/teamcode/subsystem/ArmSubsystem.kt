@@ -41,11 +41,14 @@ object ArmSubsystem : PIDFSubsystem() {
 
     override val sensitivity = 15
 
-    @JvmField var targetPositionTunable = 0
-    @JvmField var rightFocus = true
-    @JvmField var logTelemetry = true
+    @JvmField
+    var targetPositionTunable = 0
+    @JvmField
+    var rightFocus = true
+    @JvmField
+    var logTelemetry = true
 
-    override fun setPosition(position: Int) {
+    override fun setTarget(position: Int) {
         targetPositionTunable = position
         targetPosition = position
     }
@@ -53,7 +56,7 @@ object ArmSubsystem : PIDFSubsystem() {
     override fun init(opMode: Wrapper) {
         dual = Dual(left, right)
         pidfController.setPIDF(Config.LIFT_PIDF)
-        setPosition(0)
+        setTarget(0)
 
         right.direction = DcMotorSimple.Direction.REVERSE
 
@@ -74,14 +77,9 @@ object ArmSubsystem : PIDFSubsystem() {
         return basically(motor.currentPosition, targetPosition, sensitivity)
     }
 
-    fun goTo(target: Int): Lambda {
-        return Lambda("Go to $subsystemName position")
-            .addRequirements(this::class.java)
-            .addExecute {
-                setPosition(target)
-            }
-            .setFinish(this::isAtTarget)
-    }
+    fun goTo(target: Int) = Lambda("Go to $subsystemName position")
+        .setExecute { setTarget(target) }
+        .setFinish(ArmSubsystem::isAtTarget)
 
     fun recalibrateEncoders(): Sequential {
         val timer = Timer()
@@ -104,20 +102,21 @@ object ArmSubsystem : PIDFSubsystem() {
                 .setFinish { timer.isFinished() }
                 .addEnd {
                     dual.reset()
-                    setPosition(0)
+                    setTarget(0)
                 }
         )
     }
 
-    fun update(keybinds: KeybindTemplate): Lambda {
-        return Lambda("Update Arm PIDF")
-            .addExecute {
-                incrementPosition(keybinds.lift.state)
-                updatePIDF()
-                if (logTelemetry)
-                    log()
-            }
-    }
+    fun update(keybinds: KeybindTemplate) = Lambda("Update Arm")
+        .addRequirements(ArmSubsystem)
+        .setExecute {
+            incrementPosition(keybinds.arm.state)
+            updatePIDF()
+            if (logTelemetry)
+                log()
+        }
+        .addInterruptible { true }
+        .setFinish { false }
 
     private fun log() {
         // Position graph
@@ -126,7 +125,7 @@ object ArmSubsystem : PIDFSubsystem() {
         Util.telemetry.addData("Target Position", targetPosition)
 
         // Power graph
-       Util.telemetry.addData("Left Power", left.power)
+        Util.telemetry.addData("Left Power", left.power)
         Util.telemetry.addData("Right Power", right.power)
 
         Util.telemetry.update()

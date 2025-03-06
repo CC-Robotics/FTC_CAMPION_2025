@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.structures
 
 import dev.frozenmilk.mercurial.commands.Lambda
-import org.firstinspires.ftc.teamcode.util.basically
 import org.firstinspires.ftc.teamcode.util.clampInt
 import org.firstinspires.ftc.teamcode.controller.PIDFController
 import kotlin.math.max
@@ -17,12 +16,12 @@ open class PIDFSubsystem : SubsystemCore() {
         targetPosition = max(targetPosition + sensitivity * multiplier, 0.0).roundToInt()
     }
 
-    open fun setPosition(position: Int) {
+    open fun setTarget(position: Int) {
         targetPosition = position
     }
 
     open fun clampPosition(lo: Int, hi: Int) {
-        setPosition(clampInt(targetPosition, lo, hi))
+        setTarget(clampInt(targetPosition, lo, hi))
     }
 
     open fun changePositionL(multiplier: Double = 1.0): Lambda {

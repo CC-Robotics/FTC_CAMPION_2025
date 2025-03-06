@@ -13,7 +13,7 @@ interface KeybindTemplate {
     val movementX: BoundDoubleSupplier
     val movementY: BoundDoubleSupplier
 
-    val lift: BoundDoubleSupplier
+    val arm: BoundDoubleSupplier
     val slide: BoundDoubleSupplier
 
     val wristUp: BoundBooleanSupplier
@@ -41,7 +41,7 @@ class TwoDriverTemplate(gamepad1: BoundGamepad, gamepad2: BoundGamepad) : Keybin
     override val wristDown = gamepad2.dpadLeft
 
     override val slide = gamepad2.rightStickY
-    override val lift = gamepad2.leftStickY
+    override val arm = gamepad2.leftStickY
 
     override val axleUp = gamepad2.y
     override val axleDown = gamepad2.a
@@ -75,7 +75,7 @@ class OneDriverTemplate(gamepad: BoundGamepad) : KeybindTemplate {
     override val slide = BoundDoubleSupplier {
         gamepad.rightTrigger.state - gamepad.leftTrigger.state
     }
-    override val lift = BoundDoubleSupplier {
+    override val arm = BoundDoubleSupplier {
         val down = if (gamepad.leftBumper.state) -1.0 else 0.0
         val up = if (gamepad.rightBumper.state) 1.0 else 0.0
         down + up

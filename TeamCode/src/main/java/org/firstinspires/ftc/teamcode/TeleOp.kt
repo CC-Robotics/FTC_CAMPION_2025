@@ -45,7 +45,7 @@ open class TeleMain : OpMode() {
 
         keybinds.toggleClaw.onTrue(HandSubsystem.toggleClaw())
         keybinds.retract.onTrue(CommandGroups.retract())
-        keybinds.toggleCollection.onTrue(CommandGroups.positionForCollection())
+        keybinds.toggleCollection.onTrue(CommandGroups.collect(keybinds))
 
         keybinds.axleDown.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, -0.005))
         keybinds.axleUp.whileTrue(HandSubsystem.incrementPosition(HandSubsystem.ServoType.AXLE, 0.005))

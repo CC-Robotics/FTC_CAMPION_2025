@@ -45,6 +45,9 @@ object DrivetrainSubsystem : SubsystemCore() {
                 if (VisionSubsystem.cachedBestContour == null) return@addFinish false
                 return@addFinish basically(VisionSubsystem.cachedBestContour!!.coords.first, 0.0, 0.1)
             }
+            .addEnd {
+                DrivetrainSubsystem.defaultCommand = driveByGamepad(keybinds)
+            }
     }
 
     private fun driveWithLocking(keybinds: KeybindTemplate) = Lambda("Drive with locking mechanism")
