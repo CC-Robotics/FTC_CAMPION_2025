@@ -8,6 +8,7 @@ import dev.frozenmilk.mercurial.Mercurial.isScheduled
 import dev.frozenmilk.mercurial.commands.Command
 import dev.frozenmilk.mercurial.commands.Lambda
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -97,6 +98,14 @@ fun degreeToWristPosition(degree: Double): Double {
     // Invert the interpolation
     return lerp(maxPos, minPos, normalizedDegree / 180.0)
 }
+
+//fun applyCos() {
+//    if (useCosineFeedforward) {
+//        val fm = cos(Math.toRadians(setPoint / ticksInDegree) + ffOffset)
+//        return p * positionError + i * totalError + d * velocityError + f * fm * setPoint
+//    }
+//    val ff = cos(Math.toRadians(setPoint / ticksInDegree))
+//}
 
 fun adjustedDegreeToWristPosition(degree: Double): Double {
     val adjustedDegree = (degree + 90) % 360
