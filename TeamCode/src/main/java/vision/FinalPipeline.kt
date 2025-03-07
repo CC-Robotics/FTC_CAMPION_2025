@@ -55,7 +55,8 @@ class FinalPipeline : OpenCvPipeline() {
         val angle: Double,
         val color: RobotConfig.SampleColor,
         val distance: Double,
-        val hOffset: Double
+        val coords: Pair<Double, Double>,
+        val area: Double
     )
 
     private val analyzedContours =
@@ -276,7 +277,8 @@ class FinalPipeline : OpenCvPipeline() {
                 rotRectAngle,
                 detectedColor,
                 distanceCm,
-                sampleX
+                Pair(sampleX, sampleY),
+                area
             )
         )
     }
