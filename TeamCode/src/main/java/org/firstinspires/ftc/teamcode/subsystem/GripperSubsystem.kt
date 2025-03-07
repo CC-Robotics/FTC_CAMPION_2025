@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.adjustedDegreeToWristPosition
+import org.firstinspires.ftc.teamcode.util.degreeToWristPosition
 import org.firstinspires.ftc.teamcode.util.round
 import java.lang.annotation.Inherited
 
@@ -109,7 +110,7 @@ object GripperSubsystem : SubsystemCore() {
     }
 
     fun moveWristDegrees(deg: Double): Lambda {
-        return goTo(ServoType.WRIST, adjustedDegreeToWristPosition(deg))
+        return goTo(ServoType.WRIST, degreeToWristPosition(deg))
     }
 
     private fun openClaw(): Lambda {

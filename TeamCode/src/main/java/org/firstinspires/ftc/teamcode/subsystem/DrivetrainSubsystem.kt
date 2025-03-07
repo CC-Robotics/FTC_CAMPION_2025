@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
-import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.dairy.core.dependency.Dependency
@@ -12,7 +11,6 @@ import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.controller.PController
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import org.firstinspires.ftc.teamcode.util.Util
-import org.firstinspires.ftc.teamcode.util.basically
 import java.lang.annotation.Inherited
 import kotlin.math.abs
 import kotlin.math.max
@@ -37,27 +35,17 @@ object DrivetrainSubsystem : SubsystemCore() {
     private val bR by subsystemCell { getHardware<DcMotorEx>("bR") }
     private val bL by subsystemCell { getHardware<DcMotorEx>("bL") }
 
-    var isLockedIn = false
+    @JvmField var isLockedIn = false
 
-    fun lockIn(keybinds: KeybindTemplate): Lambda {
+    fun lockIn(): Lambda {
         return Lambda("Drive to align with goal")
-            .addInit {
+            .addExecute {
                 isLockedIn = true
                 RobotConfig.lockArm = true
                 RobotConfig.lockLift = true
                 RobotConfig.lockServos = true
             }
             .addFinish { !isLockedIn }
-    }
-
-    private fun updateP() {
-        val contour = VisionSubsystem.getBestContour()
-        if (contour == null) {
-            drive(0.0, 0.0, 0.0)
-            return
-        }
-        val power = pController.calculate(contour.coords.first, 0.0)
-        drive(power, 0.0, 0.0)
     }
 
     private fun applyPower(x: Double = 0.0, y: Double = 0.0, rx: Double = 0.0): Boolean {
@@ -83,21 +71,22 @@ object DrivetrainSubsystem : SubsystemCore() {
             if (!isLockedIn)
                 drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state)
             else {
-                val contour = VisionSubsystem.getBestContour()
+                val contour = VisionSubsystem.getAnalyzedContours().firstOrNull()
                 val driveResult = drive(
                     keybinds.movementX.state,
                     keybinds.movementY.state,
                     keybinds.movementRot.state
                 )
 
-                Util.telemetry.addData("locking in", "true")
+                Util.telemetry.addData("locking in", contour)
 
                 if (contour != null) {
                     if (!driveResult) {
                         pController.kp = p
-                        val power = pController.calculate(contour.coords.first, 0.0)
+                        Util.telemetry.addData("stuff", "doing")
+                        val power = pController.calculate(contour.coords.second, 0.0)
                         drive(power, 0.0, 0.0)
-                        GripperSubsystem.moveWristDegrees(contour.angle)
+                        GripperSubsystem.moveWristDegrees(contour.angle).execute()
                     } else {
                         Util.telemetry.addLine("ah bwoy")
                     }

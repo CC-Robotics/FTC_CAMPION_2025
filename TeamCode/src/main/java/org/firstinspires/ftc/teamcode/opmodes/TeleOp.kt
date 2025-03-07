@@ -54,7 +54,7 @@ open class TeleMain : OpMode() {
             )
         )
 
-        keybinds.toggleCollection.onTrue(CommandGroups.collect(keybinds))
+        keybinds.toggleCollection.onTrue(CommandGroups.collect())
 
         keybinds.resetEncoder.onTrue(ArmSubsystem.resetEncoders())
         keybinds.toggleClaw.onTrue(GripperSubsystem.toggleClaw())
