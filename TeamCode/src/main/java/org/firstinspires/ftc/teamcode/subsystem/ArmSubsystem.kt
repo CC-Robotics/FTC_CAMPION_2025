@@ -41,7 +41,8 @@ object ArmSubsystem : PIDFSubsystem() {
 
     private lateinit var dual: Dual
 
-    override val sensitivity = 30
+    override val sensitivity = 15
+    val tolerance = 30
 
     @JvmField
     var targetPositionTunable = 0
@@ -85,7 +86,7 @@ object ArmSubsystem : PIDFSubsystem() {
 
     fun isAtTarget(): Boolean {
         val motor = if (rightFocus) right else left
-        return basically(motor.currentPosition, targetPosition, sensitivity)
+        return basically(motor.currentPosition, targetPosition, tolerance)
     }
 
     fun goTo(target: Int): Lambda {

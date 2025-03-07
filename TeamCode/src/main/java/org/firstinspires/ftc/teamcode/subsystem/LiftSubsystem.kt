@@ -31,7 +31,9 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    override val sensitivity = 150
+    override val sensitivity = 15
+    private const val TOLERANCE = 150
+    private const val MAX_VALUE = 3437
 
     @JvmField
     var targetPositionTunable = 0
@@ -59,7 +61,11 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     fun isAtTarget(): Boolean {
-        return basically(lift.currentPosition, targetPosition, sensitivity)
+        return basically(lift.currentPosition, targetPosition, TOLERANCE)
+    }
+
+    fun dynamax() {
+
     }
 
     fun retract() = goTo(0)
@@ -93,16 +99,21 @@ object LiftSubsystem : PIDFSubsystem() {
         Util.telemetry.addData("Setliftpower", power)
     }
 
+    private fun normalizePosition(value: Double) {
+        targetPosition = targetPositionTunable
+        incrementPosition(value)
+        clampPosition(0, MAX_VALUE)
+        targetPositionTunable = targetPosition
+    }
+
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
         .addRequirements(LiftSubsystem)
         .setExecute {
-            targetPosition = targetPositionTunable
-            incrementPosition(keybinds.slide.state)
-            targetPositionTunable = targetPosition
+            normalizePosition(keybinds.slide.state)
             if (RobotConfig.lockLift) {
-                updatePIDF()
-            } else {
                 lift.power = pidfController.f
+            } else {
+                updatePIDF()
             }
         }
         .addInterruptible { true }
