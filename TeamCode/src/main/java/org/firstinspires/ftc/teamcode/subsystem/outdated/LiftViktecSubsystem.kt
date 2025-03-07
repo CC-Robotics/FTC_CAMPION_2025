@@ -8,7 +8,7 @@ import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import java.lang.annotation.Inherited
 
@@ -58,8 +58,8 @@ object LiftViktecSubsystem : SubsystemCore() {
             0.0
         }
 
-        leftLift.power = Config.VIKTEC_FF + POWER * multiplier
-        rightLift.power = Config.VIKTEC_FF + POWER * multiplier
+        leftLift.power = RobotConfig.VIKTEC_FF + POWER * multiplier
+        rightLift.power = RobotConfig.VIKTEC_FF + POWER * multiplier
 
         telemetry()
     }

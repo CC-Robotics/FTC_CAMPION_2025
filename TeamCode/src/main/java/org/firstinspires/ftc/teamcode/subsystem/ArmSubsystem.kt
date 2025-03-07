@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
@@ -8,7 +9,7 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.commands.groups.Sequential
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.controller.PIDFController
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
@@ -54,9 +55,16 @@ object ArmSubsystem : PIDFSubsystem() {
         targetPosition = position
     }
 
+    fun reset() {
+        left.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        right.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        left.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        right.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    }
+
     override fun init(opMode: Wrapper) {
         dual = Dual(left, right)
-        pidfController.setPIDF(Config.LIFT_PIDF)
+        pidfController.setPIDF(RobotConfig.LIFT_PIDF)
         setTarget(0)
 
         right.direction = DcMotorSimple.Direction.REVERSE
@@ -65,7 +73,7 @@ object ArmSubsystem : PIDFSubsystem() {
     }
 
     private fun updatePIDF() {
-        pidfController.setPIDF(Config.LIFT_PIDF)
+        pidfController.setPIDF(RobotConfig.LIFT_PIDF)
         clampPosition(0, MAX_POSITION)
         val motor = if (rightFocus) right else left
         val power =
@@ -82,7 +90,7 @@ object ArmSubsystem : PIDFSubsystem() {
         .setExecute { setTarget(target) }
         .setFinish(ArmSubsystem::isAtTarget)
 
-    fun recalibrateEncoders(): Sequential {
+    fun resetEncoders(): Sequential {
         val timer = Timer()
         return Sequential(
             proxiedCommand( Lambda("Gently set down lift")
@@ -112,14 +120,18 @@ object ArmSubsystem : PIDFSubsystem() {
         .addRequirements(ArmSubsystem)
         .setExecute {
             incrementPosition(keybinds.arm.state)
-            updatePIDF()
-            if (logTelemetry)
-                log()
+            if (RobotConfig.lockLift) {
+                left.power = pidfController.f
+                right.power = pidfController.f
+            } else {
+                updatePIDF()
+            }
         }
         .addInterruptible { true }
         .setFinish { false }
 
-    private fun log() {
+    override fun periodic(opMode: Wrapper) {
+        if (!logTelemetry) return
         // Position graph
         Util.telemetry.addData("Left Lift Position", left.currentPosition)
         Util.telemetry.addData("Right Lift Position", right.currentPosition)
@@ -128,7 +140,5 @@ object ArmSubsystem : PIDFSubsystem() {
         // Power graph
         Util.telemetry.addData("Left Power", left.power)
         Util.telemetry.addData("Right Power", right.power)
-
-        Util.telemetry.update()
     }
 }

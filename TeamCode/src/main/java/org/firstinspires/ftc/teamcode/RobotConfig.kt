@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
 
 @Config
-object Config {
+object RobotConfig {
     @JvmField var behavior = Behavior.MANUAL
     @JvmField var allianceColour = SampleColor.UNKNOWN
 
@@ -14,6 +14,10 @@ object Config {
     @JvmField var VIKTEC_FF = 0.008
 
     @JvmField var usePIDF = true
+
+    @JvmField var lockLift = false
+    @JvmField var lockArm = false
+    @JvmField var lockServos = false
 
     enum class Behavior {
         COLLECTING,

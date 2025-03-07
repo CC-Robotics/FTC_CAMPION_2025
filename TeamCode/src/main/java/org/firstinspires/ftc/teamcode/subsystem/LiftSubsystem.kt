@@ -8,7 +8,7 @@ import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
-import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.util.Util
@@ -34,6 +34,14 @@ object LiftSubsystem : PIDFSubsystem() {
 
     @JvmField
     var targetPositionTunable = 0
+
+    @JvmField
+    var logTelemetry = true
+
+    fun reset() {
+        lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    }
 
     override fun init(opMode: Wrapper) {
         targetPosition = 0
@@ -73,39 +81,31 @@ object LiftSubsystem : PIDFSubsystem() {
         .setFinish(LiftSubsystem::isAtTarget)
 
     private fun updatePIDF() {
-        pidfController.setPIDF(Config.LINEAR_SLIDE_PIDF)
+        pidfController.setPIDF(RobotConfig.LINEAR_SLIDE_PIDF)
         val power =
             pidfController.calculate(lift.currentPosition.toDouble(), targetPosition.toDouble())
         lift.power = power
+        Util.telemetry.addData("Setliftpower", power)
     }
 
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
         .addRequirements(LiftSubsystem)
         .setExecute {
             incrementPosition(keybinds.slide.state)
-            updatePIDF()
-            log()
+            if (RobotConfig.lockLift) {
+                updatePIDF()
+            } else {
+                lift.power = pidfController.f
+            }
         }
         .addInterruptible { true }
         .setFinish { false }
 
-    private fun log() {
+    override fun periodic(opMode: Wrapper) {
+        if (!logTelemetry) return
         Util.telemetry.addData("current", lift.getCurrent(CurrentUnit.AMPS))
         Util.telemetry.addData("Slide Position", lift.currentPosition)
         Util.telemetry.addData("Slide Target Position", targetPosition)
         Util.telemetry.update()
     }
-
-    enum class SlidePosition(val position: Int) {
-        VISION_POSITION(300)
-    }
 }
-
-/*
-*     // in cm, min extend to max extend
-    private val rangeOfLength = Pair(44.45, 104.14)
-    private const val MAX_POSITION = 3900
-
-    val length: Distance
-        get() = lerp(rangeOfLength.first, rangeOfLength.second, targetPosition.toDouble() / MAX_POSITION).cm
-* */

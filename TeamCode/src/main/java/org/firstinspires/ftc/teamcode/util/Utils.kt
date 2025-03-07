@@ -86,3 +86,18 @@ fun proxiedCommand(command: Command): Lambda {
         .setInit(command::schedule)
         .setFinish { !isScheduled(command) }
 }
+
+fun degreeToWristPosition(degree: Double): Double {
+    val minPos = 0.204
+    val maxPos = 0.909
+
+    // Since 180 degrees corresponds to the full range, 360 degrees maps cyclically
+    val normalizedDegree = degree % 180
+
+    return lerp(minPos, maxPos, normalizedDegree / 180.0)
+}
+
+fun adjustedDegreeToWristPosition(degree: Double): Double {
+    val adjustedDegree = (degree + 90) % 360
+    return degreeToWristPosition(adjustedDegree)
+}

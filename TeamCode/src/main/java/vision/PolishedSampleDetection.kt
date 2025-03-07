@@ -1,6 +1,6 @@
 package vision
 
-import org.firstinspires.ftc.teamcode.Config
+import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.util.lerp
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -24,7 +24,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
     // Dilation adds pixels to the boundaries of objects in an image. It is useful for joining broken parts of an object, filling small holes, etc.
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
     // A data class that holds information about a detected contour and has two properties rect and angle
-    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: Config.SampleColor, val distance: Double, val coords: Pair<Double, Double>, val area: Double)
+    data class AnalyzedContour(val rect: RotatedRect, val angle: Double, val color: RobotConfig.SampleColor, val distance: Double, val coords: Pair<Double, Double>, val area: Double)
     private val analyzedContours = mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
@@ -293,17 +293,17 @@ class PolishedSampleDetection : OpenCvPipeline() {
     }
 
 
-    private fun detectColor(input: Mat, cX: Int, cY: Int): Config.SampleColor {
+    private fun detectColor(input: Mat, cX: Int, cY: Int): RobotConfig.SampleColor {
         val hsv = Mat()
         Imgproc.cvtColor(input, hsv, Imgproc.COLOR_RGB2HSV)
         val pixel = hsv.get(cY, cX)
         val hue = pixel[0]
 
         return when (hue) {
-            in 0.0..10.0, in 160.0..180.0 -> Config.SampleColor.RED
-            in 20.0..30.0 -> Config.SampleColor.YELLOW
-            in 100.0..130.0 -> Config.SampleColor.BLUE
-            else -> Config.SampleColor.UNKNOWN
+            in 0.0..10.0, in 160.0..180.0 -> RobotConfig.SampleColor.RED
+            in 20.0..30.0 -> RobotConfig.SampleColor.YELLOW
+            in 100.0..130.0 -> RobotConfig.SampleColor.BLUE
+            else -> RobotConfig.SampleColor.UNKNOWN
         }
     }
 

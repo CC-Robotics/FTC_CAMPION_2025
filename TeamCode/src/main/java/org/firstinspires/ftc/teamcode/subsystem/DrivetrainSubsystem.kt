@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
-import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.KeybindTemplate
+import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.controller.PController
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
+import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.basically
 import java.lang.annotation.Inherited
 import kotlin.math.abs
@@ -24,7 +25,9 @@ object DrivetrainSubsystem : SubsystemCore() {
     @Inherited
     annotation class Attach
 
-    @JvmField val pController = PController(0.0)
+    @JvmField var p = 0.0
+
+    private val pController = PController(0.0)
 
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
@@ -36,33 +39,53 @@ object DrivetrainSubsystem : SubsystemCore() {
 
     fun lockIn(keybinds: KeybindTemplate): Lambda {
         return Lambda("Drive to align with goal")
-            .addRequirements(this::class.java)
-            .addRequirements(VisionSubsystem::class.java)
             .addInit {
                 DrivetrainSubsystem.defaultCommand = driveWithLocking(keybinds)
+                FtcDashboard.getInstance().telemetry.addLine("Locking in")
+                RobotConfig.lockArm = true
+                RobotConfig.lockLift = true
+                RobotConfig.lockServos = true
             }
-            .addFinish {
-                if (VisionSubsystem.cachedBestContour == null) return@addFinish false
-                return@addFinish basically(VisionSubsystem.cachedBestContour!!.coords.first, 0.0, 0.1)
-            }
-            .addEnd {
-                DrivetrainSubsystem.defaultCommand = driveByGamepad(keybinds)
-            }
+            .addFinish { true }
     }
 
     private fun driveWithLocking(keybinds: KeybindTemplate) = Lambda("Drive with locking mechanism")
-        .addRequirements(this::class.java)
-        .addRequirements(VisionSubsystem::class.java)
+        .addRequirements(DrivetrainSubsystem)
         .addExecute {
             val contour = VisionSubsystem.getBestContour()
-            if (contour == null) {
-                if (!drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state))
-                    updateP()
-                return@addExecute
+            val driveResult = drive(
+                keybinds.movementX.state,
+                keybinds.movementY.state,
+                keybinds.movementRot.state
+            )
+
+            if (contour != null) {
+                if (true) {
+                    pController.kp = p
+                    val power = pController.calculate(contour.coords.first, 0.0)
+                    drive(power, 0.0, 0.0)
+                    GripperSubsystem.moveWristDegrees(contour.angle)
+                } else {
+                    Util.telemetry.addLine("ah bwoy")
+                }
             }
-            val power = pController.calculate(contour.coords.first, 0.0)
-            drive(power, 0.0, 0.0)
         }
+        .setFinish {
+            val contour = VisionSubsystem.cachedBestContour ?: return@setFinish false
+            basically(
+                contour.coords.first,
+                0.0,
+                0.1
+            )
+        }
+        .addEnd {
+            DrivetrainSubsystem.defaultCommand = driveByGamepad(keybinds)
+            RobotConfig.lockArm = false
+            RobotConfig.lockLift = false
+            RobotConfig.lockServos = false
+        }
+        .addInterruptible { true }
+
     private fun updateP() {
         val contour = VisionSubsystem.getBestContour()
         if (contour == null) {
@@ -91,10 +114,12 @@ object DrivetrainSubsystem : SubsystemCore() {
     }
 
     fun driveByGamepad(keybinds: KeybindTemplate) = Lambda("Drive with controller")
-        .addRequirements(this::class.java)
+        .addRequirements(DrivetrainSubsystem)
         .addExecute {
             drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state)
         }
+        .addInterruptible { true }
+        .setFinish { false }
 
     private fun drive(x: Double, y: Double, rx: Double): Boolean {
         // You may be wondering. Why is rx and y in the wrong place?
