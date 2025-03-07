@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients
 
 @Config
 object RobotConfig {
-    @JvmField var behavior = Behavior.MANUAL
     @JvmField var allianceColour = SampleColor.UNKNOWN
 
     @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients(0.01, 0.002, 0.000001, 0.00005)
@@ -13,19 +12,10 @@ object RobotConfig {
 
     @JvmField var VIKTEC_FF = 0.008
 
-    @JvmField var usePIDF = true
-
     @JvmField var lockLift = false
-    @JvmField var lockArm = false
     @JvmField var lockServos = false
 
     @JvmField var startCollection = false
-
-    enum class Behavior {
-        COLLECTING,
-        MANUAL,
-        RUN_TO_VISION_POSITION
-    }
 
     enum class SampleColor {
         RED, BLUE, YELLOW, UNKNOWN
