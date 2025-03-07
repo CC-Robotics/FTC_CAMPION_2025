@@ -23,9 +23,9 @@ object DrivetrainSubsystem : SubsystemCore() {
     @Inherited
     annotation class Attach
 
-    @JvmField var p = 0.0
+    @JvmField var p = 0.018
 
-    private val pController = PController(0.0)
+    private val pController = PController(p)
 
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
@@ -39,13 +39,14 @@ object DrivetrainSubsystem : SubsystemCore() {
 
     fun lockIn(): Lambda {
         return Lambda("Drive to align with goal")
-            .addExecute {
+            .setInit {
                 isLockedIn = true
-                RobotConfig.lockArm = true
-                RobotConfig.lockLift = true
                 RobotConfig.lockServos = true
             }
-            .addFinish { !isLockedIn }
+            .setFinish { !isLockedIn }
+            .setEnd {
+                RobotConfig.lockServos = false
+            }
     }
 
     private fun applyPower(x: Double = 0.0, y: Double = 0.0, rx: Double = 0.0): Boolean {
@@ -84,19 +85,19 @@ object DrivetrainSubsystem : SubsystemCore() {
                     if (!driveResult) {
                         pController.kp = p
                         Util.telemetry.addData("stuff", "doing")
-                        val power = pController.calculate(contour.coords.second, 0.0)
-                        drive(power, 0.0, 0.0)
+                        val xPower = pController.calculate(contour.coords.second, -0.5)
+                        val yPower = pController.calculate(contour.coords.first, 0.0)
+                        drive(xPower, yPower, 0.0)
                         GripperSubsystem.moveWristDegrees(contour.angle).execute()
+                        Util.telemetry.addData("discrep x", abs(contour.coords.first - 0.5))
+                        Util.telemetry.addData("discrep y", abs(contour.coords.second))
                     } else {
                         Util.telemetry.addLine("ah bwoy")
                     }
                 }
 
-                if (VisionSubsystem.isAligned()) {
+                if (VisionSubsystem.isAligned() || keybinds.toggleCollection.state) {
                     isLockedIn = false
-                    RobotConfig.lockArm = false
-                    RobotConfig.lockLift = false
-                    RobotConfig.lockServos = false
                 }
             }
         }

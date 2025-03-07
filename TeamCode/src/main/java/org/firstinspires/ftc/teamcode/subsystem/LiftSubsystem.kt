@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.basically
+import org.firstinspires.ftc.teamcode.util.structures.Timer
 import java.lang.annotation.Inherited
 
 @com.acmerobotics.dashboard.config.Config
@@ -30,7 +31,7 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    override val sensitivity = 40
+    override val sensitivity = 150
 
     @JvmField
     var targetPositionTunable = 0
@@ -44,8 +45,7 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     override fun init(opMode: Wrapper) {
-        targetPosition = 0
-        targetPositionTunable = 0
+        setTarget(0)
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
 
         lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -76,9 +76,14 @@ object LiftSubsystem : PIDFSubsystem() {
 //            }
 //        }
 
-    fun goTo(target: Int) = Lambda("Go to $subsystemName position")
-        .setExecute { setTarget(target) }
-        .setFinish(LiftSubsystem::isAtTarget)
+    fun goTo(target: Int): Lambda {
+        val timer = Timer()
+        return Lambda("Go to $subsystemName position")
+            .setExecute {
+                setTarget(target)
+            }
+            .setFinish(LiftSubsystem::isAtTarget)
+    }
 
     private fun updatePIDF() {
         pidfController.setPIDF(RobotConfig.LINEAR_SLIDE_PIDF)
@@ -93,6 +98,7 @@ object LiftSubsystem : PIDFSubsystem() {
         .setExecute {
             targetPosition = targetPositionTunable
             incrementPosition(keybinds.slide.state)
+            targetPositionTunable = targetPosition
             if (RobotConfig.lockLift) {
                 updatePIDF()
             } else {
