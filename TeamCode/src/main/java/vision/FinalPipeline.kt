@@ -415,6 +415,7 @@ class FinalPipeline : OpenCvPipeline() {
     override fun onViewportTapped() {
         // This method is called when the viewport is tapped
         // Do any cleanup needed here
+        // I'm black
     }
 
     // Add a method to properly release all Mat resources
