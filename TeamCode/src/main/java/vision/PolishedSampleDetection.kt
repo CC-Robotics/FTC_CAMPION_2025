@@ -2,11 +2,13 @@ package vision
 
 import org.firstinspires.ftc.teamcode.Config
 import org.firstinspires.ftc.teamcode.util.lerp
+import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline
 import kotlin.math.atan
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.tan
 
 
@@ -14,6 +16,17 @@ class PolishedSampleDetection : OpenCvPipeline() {
 
     // Camera Intrinsics
     private val fx = 400.0  // Focal length i
+    // 640x480 Camera Matrix
+    private val cameraMatrix = Mat(3, 3, CvType.CV_64F).apply {
+        put(0, 0, 821.993, 0.0, 330.489) // fx, 0, cx
+        put(1, 0, 0.0, 821.993, 248.997) // 0, fy, cy
+        put(2, 0, 0.0, 0.0, 1.0)         // 0, 0, 1
+    }
+
+    // 640x480 Distortion Coefficients
+    private val distCoeffs = Mat(1, 5, CvType.CV_64F).apply {
+        put(0, 0, -0.018522, 1.03979, 0.0, 0.0, -3.3171)
+    }
 
     // Camera Mounting Angle (in radians!  Positive if tilted *up*)
     private val cameraMountingAngle = 0.0 // Replace with your actual angle
@@ -155,6 +168,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
         val bigCnt = ArrayList<MatOfPoint>()
         // Iterate through each contour
         for (contour in contours) {
+
             // Calculate the area of the contour
             val area = Imgproc.contourArea(contour, false)
 
@@ -166,25 +180,13 @@ class PolishedSampleDetection : OpenCvPipeline() {
             val m00 = moments.m00
             if (m00 == 0.0) continue
 
+            // Calculate the rotated rectangle and angle
+            val rect = Imgproc.minAreaRect(MatOfPoint2f(*contour.toArray()))
+            val angle = calculateAngle(rect)
+
             // Calculate the centroid of the contour
             val cX = (moments.m10 / m00).toInt()
             val cY = (moments.m01 / m00).toInt()
-
-            val distance = calculateDistance(area)
-
-            val targetKFactor = idealKFactor(distance)
-
-            // Calculate a threshold of 50% to allow for any inaccuracies to not be there
-            val threshold = 0.5
-            // If a contour doesn't meet the threshold then this will
-            val kFactorMax = targetKFactor * (1 + threshold)
-            val kFactorMin = targetKFactor * (1 - threshold)
-
-            // Check if the calculated K-factor is between the values. If not, it will just simply continue
-            val calculatedKFactor = distance * area
-            // Check if the calculated K-factor is between the values. If not, it will just simply continue
-
-            //if (calculatedKFactor >= kFactorMin && calculatedKFactor <= kFactorMax) {
 
             // Check if the current contour has the largest area
             if (area >= maxArea) {
@@ -195,7 +197,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
                 Imgproc.putText(input, "$cX $cY $area", Point(cX.toDouble(), cY.toDouble()), Imgproc.FONT_HERSHEY_COMPLEX, 1.0, Scalar(8.0, 232.0, 222.0))
 
                 // 2. Estimate Distance (Using your function)
-                val distanceRaw = calculateDistance(area)
+                val distanceRaw = estimateDistance(rect, 800.0, 8.802, 3.724, cameraMatrix, distCoeffs)
 
                 // 3. Correct Distance for Camera Mounting Angle
                 val distanceCm = distanceRaw * cos(cameraMountingAngle)
@@ -221,9 +223,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
 
                 val color = detectColor(input, cX, cY)
 
-                // Calculate the rotated rectangle and angle
-                val rect = Imgproc.minAreaRect(MatOfPoint2f(*contour.toArray()))
-                val angle = calculateAngle(rect)
+
                 analyzedContours.add(
                     AnalyzedContour(
                         rect,
@@ -248,7 +248,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
         // Distance (cm) = k / Area
         // where k is a constant determined by calibration.
 
-        val k = 486505 // This value should be determined through calibration.
+        val k = 464015 // This value should be determined through calibration.
 
         return k / area // Returns distance in centimeters
     }
@@ -265,6 +265,42 @@ class PolishedSampleDetection : OpenCvPipeline() {
         val angle = -(rotRectAngle - 180)
         return angle
     }
+
+    private fun undistortObjectPoints(rect: RotatedRect, cameraMatrix: Mat, distCoeffs: Mat): RotatedRect {
+        // Create input object points (center of the rotated rectangle)
+        val objectPoints = MatOfPoint2f(Point(rect.center.x, rect.center.y))
+
+        // Prepare Mat for undistorted points
+        val undistortedPoints = MatOfPoint2f()
+
+        // Prepare identity rotation and projection matrices (you can use them if needed)
+        val R = Mat.eye(3, 3, CvType.CV_64F)  // Identity rotation matrix
+        val P = Mat.eye(3, 4, CvType.CV_64F)  // Identity projection matrix
+
+        // Apply undistortion using the camera matrix and distortion coefficients
+        Calib3d.undistortPoints(objectPoints, undistortedPoints, cameraMatrix, distCoeffs)
+
+        // Retrieve the undistorted point (center) after transformation
+        val undistortedCenter = undistortedPoints.toArray()[0]
+
+        // Return a new RotatedRect with the undistorted center, same size, and angle
+        return RotatedRect(undistortedCenter, rect.size, rect.angle)
+    }
+
+
+
+    fun estimateDistance(rect: RotatedRect, fEffective: Double, realObjectWidth: Double, realObjectHeight: Double, cameraMatrix: Mat, distCoeffs: Mat): Double {
+        // Undistort the object first
+        val undistortedRect = undistortObjectPoints(rect, cameraMatrix, distCoeffs)
+
+        // Use the corrected object dimensions
+        val detectedSizePixels = max(undistortedRect.size.width, undistortedRect.size.height)
+        val realObjectSize = max(realObjectWidth, realObjectHeight)
+
+        // Calculate estimated distance
+        return (realObjectSize * fEffective) / detectedSizePixels
+    }
+
 
 
     // Draws the rotated rectangle and its angle on the image
@@ -298,6 +334,7 @@ class PolishedSampleDetection : OpenCvPipeline() {
         Imgproc.cvtColor(input, hsv, Imgproc.COLOR_RGB2HSV)
         val pixel = hsv.get(cY, cX)
         val hue = pixel[0]
+        hsv.release()
 
         return when (hue) {
             in 0.0..10.0, in 160.0..180.0 -> Config.SampleColor.RED
