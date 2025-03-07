@@ -1,5 +1,6 @@
 package vision
 
+import com.acmerobotics.dashboard.config.Config
 import org.firstinspires.ftc.teamcode.RobotConfig
 import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
@@ -59,9 +60,11 @@ class FinalPipeline : OpenCvPipeline() {
         val area: Double
     )
 
-    @Volatile
-    private var analyzedContours =
-        mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
+    @Config
+    companion object {
+        @JvmField val analyzedContours =
+            mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
+    }
 
     override fun processFrame(input: Mat): Mat {
         synchronized(analyzedContours) {
@@ -394,7 +397,7 @@ class FinalPipeline : OpenCvPipeline() {
         return (realObjectSize * fEffective) / detectedSizePixels
     }
 
-    fun getAnalyzedContours(): List<AnalyzedContour> {
+    fun fetchAnalyzedContours(): List<AnalyzedContour> {
         synchronized(analyzedContours) {
             // Return a copy of the list to prevent concurrent modification issues
             return analyzedContours.toList()
