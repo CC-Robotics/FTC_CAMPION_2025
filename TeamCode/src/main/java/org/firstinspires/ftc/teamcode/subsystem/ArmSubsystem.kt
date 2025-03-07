@@ -119,6 +119,7 @@ object ArmSubsystem : PIDFSubsystem() {
     fun update(keybinds: KeybindTemplate) = Lambda("Update Arm")
         .addRequirements(ArmSubsystem)
         .setExecute {
+            targetPosition = targetPositionTunable
             incrementPosition(keybinds.arm.state)
             if (RobotConfig.lockLift) {
                 left.power = pidfController.f

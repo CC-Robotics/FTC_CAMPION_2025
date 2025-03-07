@@ -91,6 +91,7 @@ object LiftSubsystem : PIDFSubsystem() {
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
         .addRequirements(LiftSubsystem)
         .setExecute {
+            targetPosition = targetPositionTunable
             incrementPosition(keybinds.slide.state)
             if (RobotConfig.lockLift) {
                 updatePIDF()

@@ -1,6 +1,7 @@
 package vision
 
 import org.firstinspires.ftc.teamcode.RobotConfig
+import org.firstinspires.ftc.teamcode.util.Util
 import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -64,35 +65,36 @@ class FinalPipeline : OpenCvPipeline() {
         mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
-        synchronized(analyzedContours) {
-            analyzedContours.clear() // Clear at the beginning of processing
-            findContours(input)
-
-            // Log the number of contours found to telemetry or debug
-            val size = analyzedContours.size
-            Imgproc.putText(input, "Contours: $size", Point(10.0, 30.0),
-                Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, Scalar(255.0, 255.0, 255.0), 2)
-        }
+        findContours(input)
+        getAnalyzedContours()
         return input
     }
 
     private fun getCoordinates(input: Mat, cX: Int, cY: Int): Pair<Double, Double> {
-        val width = input.width().toDouble()
-        val height = input.height().toDouble()
-
-        // Calculate center offsets
-        val offsetX = cX - (width / 2)
-        val offsetY = (height / 2) - cY  // Flipping Y so positive is up
-
-        // Normalize to [-1, 1] range
-        val normalizedX = (offsetX / (width / 2)).coerceIn(-1.0, 1.0)
-        val normalizedY = (offsetY / (height / 2)).coerceIn(-1.0, 1.0)
-
-        return Pair(normalizedX, normalizedY)
+        val centerX = input.width() / 2.0
+        val centerY = input.height() / 2.0
+        return Pair(cX - centerX, cY - centerY)
     }
 
+    fun getSamplePositions(
+        offsetX: Double,
+        offsetY: Double,
+        distance: Double
+    ): Pair<Double, Double> {
+
+
+        val angleX = atan(offsetX / fx)
+        val angleY = atan(offsetY / fx)
+
+        // 5. Calculate Horizontal Offset (Requires Distance)
+        val sampleX = distance * tan(angleX)
+        val sampleY = distance * tan(angleY)
+        return Pair(sampleX, sampleY)
+
+    }
 
     private fun findContours(input: Mat) {
+        analyzedContours.clear()
         // Convert the input image to YCrCb color space
         Imgproc.cvtColor(input, ycrcbMat, Imgproc.COLOR_RGB2YCrCb)
 
@@ -215,9 +217,7 @@ class FinalPipeline : OpenCvPipeline() {
 
         val moments = Imgproc.moments(contour)
         val m00 = moments.m00
-        if (m00 == 0.0) return
-
-
+        // if (m00 == 0.0) return
 
         val cX = (moments.m10 / m00).toInt()
         val cY = (moments.m01 / m00).toInt()
@@ -233,9 +233,11 @@ class FinalPipeline : OpenCvPipeline() {
 
         val distanceCm = distanceRaw * cos(cameraMountingAngle)
 
+        // 1. Calculate Pixel Offset
+        val (offsetX, offsetY) = getCoordinates(input, cX, cY)
 
         // 2. Calculate Sample Positions
-        val (normalizedX, normalizedY) = getCoordinates(input, cX, cY)
+        val (sampleX, sampleY) = getSamplePositions(offsetX, offsetY, distanceCm)
 
         Imgproc.putText(
             input,
@@ -245,18 +247,20 @@ class FinalPipeline : OpenCvPipeline() {
             1.0,
             Scalar(255.0, 255.0, 255.0)
         )
-        Imgproc.putText(input, "Norm X: ${normalizedX}",
-            Point(cX.toDouble(), cY.toDouble() + 20),
-            Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
-        Imgproc.putText(input, "Norm Y: ${normalizedY}",
+        Imgproc.putText(
+            input,
+            "H Offset: $sampleX cm",
             Point(cX.toDouble(), cY.toDouble() + 40),
-            Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
+            Imgproc.FONT_HERSHEY_COMPLEX,
+            0.7,
+            Scalar(255.0, 255.0, 255.0)
+        )
 
         val detectedColor = detectColor(input, cX, cY)
         Imgproc.putText(
             input,
-            "Color: ${detectedColor}",
-            Point(cX.toDouble(), cY.toDouble() + 55),
+            "Color: ${detectedColor} cm",
+            Point(cX.toDouble(), cY.toDouble() + 60),
             Imgproc.FONT_HERSHEY_COMPLEX,
             0.7,
             Scalar(255.0, 255.0, 255.0)
@@ -277,7 +281,7 @@ class FinalPipeline : OpenCvPipeline() {
                 rotRectAngle,
                 detectedColor,
                 distanceCm,
-                Pair(normalizedX, normalizedY),
+                Pair(sampleX, sampleY),
                 area
             )
         )
@@ -385,11 +389,9 @@ class FinalPipeline : OpenCvPipeline() {
         return (realObjectSize * fEffective) / detectedSizePixels
     }
 
+    @Synchronized
     fun getAnalyzedContours(): List<AnalyzedContour> {
-        synchronized(analyzedContours) {
-            // Return a copy of the list to prevent concurrent modification issues
-            return analyzedContours.toList()
-        }
+        Util.telemetry.addData("Analyzed Contours", analyzedContours.size)
+        return analyzedContours.toList()
     }
-
 }
