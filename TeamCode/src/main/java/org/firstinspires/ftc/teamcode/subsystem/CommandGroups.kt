@@ -17,7 +17,7 @@ object CommandGroups {
     fun goToCollectPosition(): Parallel {
         return Parallel(
             ArmSubsystem.goTo(302),
-            LiftSubsystem.goTo(752),
+            LiftSubsystem.goTo(752).setFinish { true },
             GripperSubsystem.setClawState(GripperSubsystem.ClawState.CLOSED),
             GripperSubsystem.goTo(GripperSubsystem.ServoType.WRIST, 0.354),
             GripperSubsystem.goTo(GripperSubsystem.ServoType.AXLE, 0.304)

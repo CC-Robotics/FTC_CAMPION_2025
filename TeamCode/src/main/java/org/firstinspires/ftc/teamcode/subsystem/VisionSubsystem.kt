@@ -15,8 +15,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
 import org.openftc.easyopencv.OpenCvWebcam
 import vision.FinalPipeline
-import vision.PolishedSampleDetection
-import vision.PolishedSampleDetection.AnalyzedContour
 import java.lang.annotation.Inherited
 
 object VisionSubsystem : SubsystemCore() {
@@ -62,7 +60,7 @@ object VisionSubsystem : SubsystemCore() {
         camera.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
                 // Start the streaming session with desired resolution and orientation
-                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT)
+                camera.startStreaming(640, 240, OpenCvCameraRotation.UPRIGHT)
                 FtcDashboard.getInstance().startCameraStream(camera, 0.0);
 
 
@@ -84,7 +82,7 @@ object VisionSubsystem : SubsystemCore() {
     }
 
     fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
-        return pipeline.getAnalyzedContours()
+        return pipeline.fetchAnalyzedContours()
     }
 
     private fun getLargestAnalyzedContour(preExisting: List<FinalPipeline.AnalyzedContour>?, min: Int = 0): FinalPipeline.AnalyzedContour? {
