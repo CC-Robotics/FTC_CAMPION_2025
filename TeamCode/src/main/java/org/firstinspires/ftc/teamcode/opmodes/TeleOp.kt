@@ -68,6 +68,10 @@ open class TeleMain : OpMode() {
         if (keybinds.wristDown.state) GripperSubsystem.addTo(GripperSubsystem.ServoType.WRIST, -0.005).execute()
         VisionSubsystem.getBestContourAndCache()
         telemetry.update()
+        if (RobotConfig.startCollection) {
+            CommandGroups.collect().schedule()
+            RobotConfig.startCollection = false
+        }
     }
 }
 

@@ -41,12 +41,14 @@ object ArmSubsystem : PIDFSubsystem() {
 
     private lateinit var dual: Dual
 
-    override val sensitivity = 15
+    override val sensitivity = 30
 
     @JvmField
     var targetPositionTunable = 0
+
     @JvmField
     var rightFocus = true
+
     @JvmField
     var logTelemetry = true
 
@@ -86,14 +88,19 @@ object ArmSubsystem : PIDFSubsystem() {
         return basically(motor.currentPosition, targetPosition, sensitivity)
     }
 
-    fun goTo(target: Int) = Lambda("Go to $subsystemName position")
-        .setExecute { setTarget(target) }
-        .setFinish(ArmSubsystem::isAtTarget)
+    fun goTo(target: Int): Lambda {
+        val timer = Timer()
+        return Lambda("Go to $subsystemName position")
+            .setExecute {
+                setTarget(target)
+            }
+            .setFinish(ArmSubsystem::isAtTarget)
+    }
 
     fun resetEncoders(): Sequential {
         val timer = Timer()
         return Sequential(
-            proxiedCommand( Lambda("Gently set down lift")
+            proxiedCommand(Lambda("Gently set down lift")
                 .addRequirements(ArmSubsystem)
                 .addExecute {
                     if (right.currentPosition > 450) {
@@ -102,7 +109,7 @@ object ArmSubsystem : PIDFSubsystem() {
                     }
                 }
                 .setFinish { timer.isFinished() }),
-            proxiedCommand( Lambda("Settle lift and reset")
+            proxiedCommand(Lambda("Settle lift and reset")
                 .addRequirements(ArmSubsystem)
                 .addExecute {
                     dual.power = 0.0
@@ -121,6 +128,7 @@ object ArmSubsystem : PIDFSubsystem() {
         .setExecute {
             targetPosition = targetPositionTunable
             incrementPosition(keybinds.arm.state)
+            targetPositionTunable = targetPosition
             if (RobotConfig.lockLift) {
                 left.power = pidfController.f
                 right.power = pidfController.f
