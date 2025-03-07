@@ -36,7 +36,7 @@ open class TeleMain : OpMode() {
 
         ArmSubsystem.defaultCommand = ArmSubsystem.update(keybinds)
         LiftSubsystem.defaultCommand = LiftSubsystem.update(keybinds)
-        DrivetrainSubsystem.defaultCommand = DrivetrainSubsystem.driveByGamepad(keybinds)
+        DrivetrainSubsystem.defaultCommand = DrivetrainSubsystem.updateDrive(keybinds)
 
 //        keybinds.axleDown.whileTrue(GripperSubsystem.addTo(GripperSubsystem.ServoType.AXLE, -0.005))
 //        keybinds.axleUp.whileTrue(GripperSubsystem.addTo(GripperSubsystem.ServoType.AXLE, 0.005))
