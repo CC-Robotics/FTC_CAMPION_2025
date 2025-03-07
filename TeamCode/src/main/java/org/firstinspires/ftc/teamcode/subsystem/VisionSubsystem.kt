@@ -9,10 +9,12 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import org.firstinspires.ftc.teamcode.util.Util
+import org.firstinspires.ftc.teamcode.util.basically
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
 import org.openftc.easyopencv.OpenCvWebcam
+import vision.FinalPipeline
 import vision.PolishedSampleDetection
 import vision.PolishedSampleDetection.AnalyzedContour
 import java.lang.annotation.Inherited
@@ -28,9 +30,9 @@ object VisionSubsystem : SubsystemCore() {
             SingleAnnotation(Attach::class.java)
 
     private lateinit var camera: OpenCvWebcam
-    private lateinit var pipeline: PolishedSampleDetection
+    private lateinit var pipeline: FinalPipeline
 
-    var cachedBestContour: AnalyzedContour? = null
+    var cachedBestContour: FinalPipeline.AnalyzedContour? = null
     val camName by subsystemCell { getHardware<WebcamName>("CrocCam") }
 
     private fun createCamera(): OpenCvWebcam {
@@ -44,6 +46,15 @@ object VisionSubsystem : SubsystemCore() {
         val camera = OpenCvCameraFactory.getInstance().createWebcam(camName, cameraMonitorViewId)
 
         return camera
+    }
+
+    fun isAligned(): Boolean {
+        val contour = cachedBestContour ?: return false
+        return basically(
+            contour.coords.first,
+            0.0,
+            0.1
+        )
     }
 
     override fun init(opMode: Wrapper) {
@@ -65,28 +76,28 @@ object VisionSubsystem : SubsystemCore() {
                 Util.telemetry.update()
             }
         })
-        pipeline = PolishedSampleDetection()
+        pipeline = FinalPipeline()
     }
 
     override fun periodic(opMode: Wrapper) {
         getBestContourAndCache()
     }
 
-    private fun getAnalyzedContours(min: Int = 0): List<AnalyzedContour> {
+    private fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
         return organizeContours(pipeline.getAnalyzedContours(), RobotConfig.allianceColour, min)
     }
 
-    private fun getLargestAnalyzedContour(preExisting: List<AnalyzedContour>?, min: Int = 0): AnalyzedContour? {
-        return (preExisting ?: getAnalyzedContours(min)).maxByOrNull { it.area }
+    private fun getLargestAnalyzedContour(preExisting: List<FinalPipeline.AnalyzedContour>?, min: Int = 0): FinalPipeline.AnalyzedContour? {
+        return (preExisting ?: getAnalyzedContours(min)).maxByOrNull { it.rect.size.area() }
     }
 
-    fun getBestContourAndCache(): AnalyzedContour? {
+    fun getBestContourAndCache(): FinalPipeline.AnalyzedContour? {
         val bestContour = getBestContour()
         cachedBestContour = bestContour
         return bestContour
     }
 
-    fun getBestContour(): AnalyzedContour? {
+    fun getBestContour(): FinalPipeline.AnalyzedContour? {
         val contours = getAnalyzedContours()
         if (contours.isEmpty()) return null
 
@@ -102,10 +113,10 @@ object VisionSubsystem : SubsystemCore() {
     }
 
     private fun organizeContours(
-        contours: List<AnalyzedContour>,
+        contours: List<FinalPipeline.AnalyzedContour>,
         allianceColor: RobotConfig.SampleColor,
         min: Int = 0,
-    ): List<AnalyzedContour> {
+    ): List<FinalPipeline.AnalyzedContour> {
         return when (allianceColor) {
             RobotConfig.SampleColor.RED -> contours.asSequence().filter { redPriority[it.color]!! >= min }
                 .sortedByDescending { redPriority[it.color] }.toList()
