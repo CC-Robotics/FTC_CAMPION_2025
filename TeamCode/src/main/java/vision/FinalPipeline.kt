@@ -255,7 +255,7 @@ class FinalPipeline : OpenCvPipeline() {
         val detectedColor = detectColor(input, cX, cY)
         Imgproc.putText(
             input,
-            "Color: ${detectedColor} cm",
+            "Color: ${detectedColor}",
             Point(cX.toDouble(), cY.toDouble() + 60),
             Imgproc.FONT_HERSHEY_COMPLEX,
             0.7,
