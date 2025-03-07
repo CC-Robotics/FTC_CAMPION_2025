@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.util.structures
 
 import com.qualcomm.robotcore.hardware.DcMotor.RunMode
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.Servo
 
 class Dual(private var motor1: DcMotorEx, private var motor2: DcMotorEx) {
     var power: Double
@@ -22,4 +23,13 @@ class Dual(private var motor1: DcMotorEx, private var motor2: DcMotorEx) {
         mode = RunMode.STOP_AND_RESET_ENCODER
         mode = RunMode.RUN_WITHOUT_ENCODER
     }
+}
+
+class DualServo(private var servo1: Servo, private var servo2: Servo) {
+    var position: Double
+        get() = servo1.position
+        set(value) {
+            servo1.position = value
+            servo2.position = value
+        }
 }

@@ -10,9 +10,9 @@ import dev.frozenmilk.mercurial.subsystems.Subsystem
 import org.firstinspires.ftc.teamcode.RobotConfig
 import org.firstinspires.ftc.teamcode.structures.SubsystemCore
 import org.firstinspires.ftc.teamcode.util.Util
-import org.firstinspires.ftc.teamcode.util.adjustedDegreeToWristPosition
 import org.firstinspires.ftc.teamcode.util.degreeToWristPosition
 import org.firstinspires.ftc.teamcode.util.round
+import org.firstinspires.ftc.teamcode.util.structures.DualServo
 import java.lang.annotation.Inherited
 
 @Config
@@ -30,22 +30,30 @@ object GripperSubsystem : SubsystemCore() {
             SingleAnnotation(Attach::class.java)
 
     private val wrist by subsystemCell { getHardware<Servo>("wrist") }
-    private val axle by subsystemCell { getHardware<Servo>("axle") }
     private val claw by subsystemCell { getHardware<Servo>("claw") }
+
+    private val leftAxle by subsystemCell { getHardware<Servo>("axle1") }
+    private val rightAxle by subsystemCell { getHardware<Servo>("axle2") }
 
     private const val WRIST_INIT = 0.515
     const val AXLE_INIT = 0.885
 
     private var currentClawState = ClawState.CLOSED
+    lateinit var dualAxle: DualServo
 
     override fun init(opMode: Wrapper) {
         wrist.controller.pwmEnable()
         claw.controller.pwmEnable()
-        axle.controller.pwmEnable()
+
+        leftAxle.controller.pwmEnable()
+        rightAxle.controller.pwmEnable()
+
+        dualAxle = DualServo(leftAxle, rightAxle)
 
         wrist.position = WRIST_INIT
         claw.position = currentClawState.position
-        axle.position = AXLE_INIT
+        rightAxle.direction = Servo.Direction.REVERSE
+        dualAxle.position = AXLE_INIT
     }
 
     fun toggleClaw(): Lambda {
@@ -76,7 +84,7 @@ object GripperSubsystem : SubsystemCore() {
                 .addExecute { if (!RobotConfig.lockServos) wrist.position += amount }.setFinish { true }
 
             ServoType.AXLE -> Lambda("Add to Axle").addRequirements(GripperSubsystem)
-                .addExecute { if (!RobotConfig.lockServos) axle.position += amount }.setFinish { true }
+                .addExecute { if (!RobotConfig.lockServos) dualAxle.position += amount }.setFinish { true }
         }
     }
 
@@ -86,7 +94,7 @@ object GripperSubsystem : SubsystemCore() {
                 .addExecute { if (!RobotConfig.lockServos) wrist.position = target }.setFinish { true }
 
             ServoType.AXLE -> Lambda("Move Axle").addRequirements(GripperSubsystem)
-                .addExecute { if (!RobotConfig.lockServos) axle.position = target }.setFinish { true }
+                .addExecute { if (!RobotConfig.lockServos) dualAxle.position = target }.setFinish { true }
         }
     }
 
@@ -94,7 +102,7 @@ object GripperSubsystem : SubsystemCore() {
         if (!logTelemetry) return
         Util.telemetry.addData("Wrist", wrist.position.round(3))
         Util.telemetry.addData("Claw", claw.position.round(3))
-        Util.telemetry.addData("Axle", axle.position.round(3))
+        Util.telemetry.addData("Axle", dualAxle.position.round(3))
     }
 
     private fun closeClaw(): Lambda {
@@ -102,7 +110,7 @@ object GripperSubsystem : SubsystemCore() {
             .addRequirements(GripperSubsystem)
             .setInterruptible(false)
             .setInit {
-                if (!org.firstinspires.ftc.teamcode.RobotConfig.lockServos) {
+                if (!RobotConfig.lockServos) {
                     claw.position = ClawState.CLOSED.position
                     currentClawState = ClawState.CLOSED
                 }
@@ -118,7 +126,7 @@ object GripperSubsystem : SubsystemCore() {
             .addRequirements(GripperSubsystem)
             .setInterruptible(false)
             .setInit {
-                if (!org.firstinspires.ftc.teamcode.RobotConfig.lockServos) {
+                if (!RobotConfig.lockServos) {
                     claw.position = ClawState.OPEN.position
                     currentClawState = ClawState.OPEN
                 }
