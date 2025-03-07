@@ -67,7 +67,7 @@ object VisionSubsystem : SubsystemCore() {
 
 
                 // Attach the processing pipeline
-                camera.setPipeline(PolishedSampleDetection())
+                camera.setPipeline(FinalPipeline())
             }
 
             override fun onError(errorCode: Int) {
@@ -83,8 +83,8 @@ object VisionSubsystem : SubsystemCore() {
         getBestContourAndCache()
     }
 
-    private fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
-        return organizeContours(pipeline.getAnalyzedContours(), RobotConfig.allianceColour, min)
+    fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
+        return pipeline.getAnalyzedContours()
     }
 
     private fun getLargestAnalyzedContour(preExisting: List<FinalPipeline.AnalyzedContour>?, min: Int = 0): FinalPipeline.AnalyzedContour? {
