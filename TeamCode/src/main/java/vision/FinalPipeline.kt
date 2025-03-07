@@ -1,6 +1,7 @@
 package vision
 
 import org.firstinspires.ftc.teamcode.RobotConfig
+import org.firstinspires.ftc.teamcode.util.Util
 import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -65,6 +66,7 @@ class FinalPipeline : OpenCvPipeline() {
 
     override fun processFrame(input: Mat): Mat {
         findContours(input)
+        getAnalyzedContours()
         return input
     }
 
@@ -92,6 +94,7 @@ class FinalPipeline : OpenCvPipeline() {
     }
 
     private fun findContours(input: Mat) {
+        analyzedContours.clear()
         // Convert the input image to YCrCb color space
         Imgproc.cvtColor(input, ycrcbMat, Imgproc.COLOR_RGB2YCrCb)
 
@@ -214,7 +217,7 @@ class FinalPipeline : OpenCvPipeline() {
 
         val moments = Imgproc.moments(contour)
         val m00 = moments.m00
-        if (m00 == 0.0) return
+        // if (m00 == 0.0) return
 
         val cX = (moments.m10 / m00).toInt()
         val cY = (moments.m01 / m00).toInt()
@@ -388,6 +391,7 @@ class FinalPipeline : OpenCvPipeline() {
 
     @Synchronized
     fun getAnalyzedContours(): List<AnalyzedContour> {
+        Util.telemetry.addData("Analyzed Contours", analyzedContours.size)
         return analyzedContours.toList()
     }
 }

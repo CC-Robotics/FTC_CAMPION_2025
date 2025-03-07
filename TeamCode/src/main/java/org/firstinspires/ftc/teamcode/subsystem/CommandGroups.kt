@@ -16,7 +16,7 @@ object CommandGroups {
 
     fun goToCollectPosition(): Parallel {
         return Parallel(
-            ArmSubsystem.goTo(485),
+            ArmSubsystem.goTo(302),
             LiftSubsystem.goTo(752),
             GripperSubsystem.setClawState(GripperSubsystem.ClawState.CLOSED),
             GripperSubsystem.goTo(GripperSubsystem.ServoType.WRIST, 0.354),
@@ -24,10 +24,10 @@ object CommandGroups {
         )
     }
 
-    fun collect(keybinds: KeybindTemplate): Sequential {
-        return  Sequential(
+    fun collect(): Sequential {
+        return Sequential(
             goToCollectPosition(),
-            DrivetrainSubsystem.lockIn(keybinds)
+            DrivetrainSubsystem.lockIn()
         )
     }
 }
