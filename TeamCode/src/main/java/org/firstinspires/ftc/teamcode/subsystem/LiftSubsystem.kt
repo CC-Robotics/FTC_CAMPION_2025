@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
 import org.firstinspires.ftc.teamcode.util.Util
 import org.firstinspires.ftc.teamcode.util.basically
+import org.firstinspires.ftc.teamcode.util.structures.Timer
 import java.lang.annotation.Inherited
 
 @com.acmerobotics.dashboard.config.Config
@@ -30,7 +31,9 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    override val sensitivity = 40
+    override val sensitivity = 15
+    private const val TOLERANCE = 150
+    private const val MAX_VALUE = 3437
 
     @JvmField
     var targetPositionTunable = 0
@@ -44,8 +47,7 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     override fun init(opMode: Wrapper) {
-        targetPosition = 0
-        targetPositionTunable = 0
+        setTarget(0)
         pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
 
         lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -59,7 +61,11 @@ object LiftSubsystem : PIDFSubsystem() {
     }
 
     fun isAtTarget(): Boolean {
-        return basically(lift.currentPosition, targetPosition, sensitivity)
+        return basically(lift.currentPosition, targetPosition, TOLERANCE)
+    }
+
+    fun dynamax() {
+
     }
 
     fun retract() = goTo(0)
@@ -76,9 +82,14 @@ object LiftSubsystem : PIDFSubsystem() {
 //            }
 //        }
 
-    fun goTo(target: Int) = Lambda("Go to $subsystemName position")
-        .setExecute { setTarget(target) }
-        .setFinish(LiftSubsystem::isAtTarget)
+    fun goTo(target: Int): Lambda {
+        val timer = Timer()
+        return Lambda("Go to $subsystemName position")
+            .setExecute {
+                setTarget(target)
+            }
+            .setFinish(LiftSubsystem::isAtTarget)
+    }
 
     private fun updatePIDF() {
         pidfController.setPIDF(RobotConfig.LINEAR_SLIDE_PIDF)
@@ -88,15 +99,21 @@ object LiftSubsystem : PIDFSubsystem() {
         Util.telemetry.addData("Setliftpower", power)
     }
 
+    private fun normalizePosition(value: Double) {
+        targetPosition = targetPositionTunable
+        incrementPosition(value)
+        clampPosition(0, MAX_VALUE)
+        targetPositionTunable = targetPosition
+    }
+
     fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
         .addRequirements(LiftSubsystem)
         .setExecute {
-            targetPosition = targetPositionTunable
-            incrementPosition(keybinds.slide.state)
+            normalizePosition(keybinds.slide.state)
             if (RobotConfig.lockLift) {
-                updatePIDF()
-            } else {
                 lift.power = pidfController.f
+            } else {
+                updatePIDF()
             }
         }
         .addInterruptible { true }
