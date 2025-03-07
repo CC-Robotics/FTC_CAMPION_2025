@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
+import dev.frozenmilk.mercurial.commands.groups.Advancing
 import dev.frozenmilk.mercurial.commands.groups.Parallel
 import dev.frozenmilk.mercurial.commands.groups.Sequential
-import dev.frozenmilk.mercurial.commands.util.Wait
+import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.subsystem.GripperSubsystem.AXLE_INIT
 
 object CommandGroups {
@@ -13,20 +14,20 @@ object CommandGroups {
         )
     }
 
-    private fun goToCollectPosition(): Parallel {
+    fun goToCollectPosition(): Parallel {
         return Parallel(
-            ArmSubsystem.goTo(302),
-            LiftSubsystem.goTo(752).setFinish { true },
+            ArmSubsystem.goTo(485),
+            LiftSubsystem.goTo(752),
             GripperSubsystem.setClawState(GripperSubsystem.ClawState.CLOSED),
             GripperSubsystem.goTo(GripperSubsystem.ServoType.WRIST, 0.354),
             GripperSubsystem.goTo(GripperSubsystem.ServoType.AXLE, 0.304)
         )
     }
 
-    fun collect(): Sequential {
-        return Sequential(
-            goToCollectPosition().raceWith(Wait(0.3)),
-            DrivetrainSubsystem.lockIn()
+    fun collect(keybinds: KeybindTemplate): Sequential {
+        return  Sequential(
+            goToCollectPosition(),
+            DrivetrainSubsystem.lockIn(keybinds)
         )
     }
 }

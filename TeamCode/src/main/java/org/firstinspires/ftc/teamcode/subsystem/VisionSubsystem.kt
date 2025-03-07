@@ -15,6 +15,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
 import org.openftc.easyopencv.OpenCvWebcam
 import vision.FinalPipeline
+import vision.PolishedSampleDetection
+import vision.PolishedSampleDetection.AnalyzedContour
 import java.lang.annotation.Inherited
 
 object VisionSubsystem : SubsystemCore() {
@@ -52,10 +54,6 @@ object VisionSubsystem : SubsystemCore() {
             contour.coords.first,
             0.0,
             0.1
-        ) && basically(
-            contour.coords.second,
-            0.0,
-            0.1
         )
     }
 
@@ -64,12 +62,12 @@ object VisionSubsystem : SubsystemCore() {
         camera.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
                 // Start the streaming session with desired resolution and orientation
-                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT)
+                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT)
                 FtcDashboard.getInstance().startCameraStream(camera, 0.0);
 
 
                 // Attach the processing pipeline
-                camera.setPipeline(FinalPipeline())
+                camera.setPipeline(PolishedSampleDetection())
             }
 
             override fun onError(errorCode: Int) {
@@ -85,8 +83,8 @@ object VisionSubsystem : SubsystemCore() {
         getBestContourAndCache()
     }
 
-    fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
-        return pipeline.fetchAnalyzedContours()
+    private fun getAnalyzedContours(min: Int = 0): List<FinalPipeline.AnalyzedContour> {
+        return organizeContours(pipeline.getAnalyzedContours(), RobotConfig.allianceColour, min)
     }
 
     private fun getLargestAnalyzedContour(preExisting: List<FinalPipeline.AnalyzedContour>?, min: Int = 0): FinalPipeline.AnalyzedContour? {
