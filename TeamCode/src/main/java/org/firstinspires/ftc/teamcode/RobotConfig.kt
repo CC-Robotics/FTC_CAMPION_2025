@@ -8,7 +8,7 @@ object RobotConfig {
     @JvmField var behavior = Behavior.MANUAL
     @JvmField var allianceColour = SampleColor.UNKNOWN
 
-    @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients(0.02, 0.002, 0.000001, 0.00005)
+    @JvmField var LINEAR_SLIDE_PIDF = PIDFCoefficients(0.01, 0.002, 0.000001, 0.00005)
     @JvmField var LIFT_PIDF = PIDFCoefficients(0.012, 0.005, 0.0002, 0.002)
 
     @JvmField var VIKTEC_FF = 0.008
