@@ -64,7 +64,15 @@ class FinalPipeline : OpenCvPipeline() {
         mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
-        findContours(input)
+        synchronized(analyzedContours) {
+            analyzedContours.clear() // Clear at the beginning of processing
+            findContours(input)
+
+            // Log the number of contours found to telemetry or debug
+            val size = analyzedContours.size
+            Imgproc.putText(input, "Contours: $size", Point(10.0, 30.0),
+                Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, Scalar(255.0, 255.0, 255.0), 2)
+        }
         return input
     }
 
@@ -386,8 +394,11 @@ class FinalPipeline : OpenCvPipeline() {
         return (realObjectSize * fEffective) / detectedSizePixels
     }
 
-    @Synchronized
     fun getAnalyzedContours(): List<AnalyzedContour> {
-        return analyzedContours.toList()
+        synchronized(analyzedContours) {
+            // Return a copy of the list to prevent concurrent modification issues
+            return analyzedContours.toList()
+        }
     }
+
 }
