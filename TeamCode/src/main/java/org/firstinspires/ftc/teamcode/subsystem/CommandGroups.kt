@@ -25,7 +25,7 @@ object CommandGroups {
     }
 
     fun collect(keybinds: KeybindTemplate): Sequential {
-        return Sequential(
+        return  Sequential(
             goToCollectPosition(),
             DrivetrainSubsystem.lockIn(keybinds)
         )

@@ -37,54 +37,18 @@ object DrivetrainSubsystem : SubsystemCore() {
     private val bR by subsystemCell { getHardware<DcMotorEx>("bR") }
     private val bL by subsystemCell { getHardware<DcMotorEx>("bL") }
 
+    var isLockedIn = false
+
     fun lockIn(keybinds: KeybindTemplate): Lambda {
         return Lambda("Drive to align with goal")
             .addInit {
-                DrivetrainSubsystem.defaultCommand = driveWithLocking(keybinds)
-                FtcDashboard.getInstance().telemetry.addLine("Locking in")
+                isLockedIn = true
                 RobotConfig.lockArm = true
                 RobotConfig.lockLift = true
                 RobotConfig.lockServos = true
             }
-            .addFinish { true }
+            .addFinish { !isLockedIn }
     }
-
-    private fun driveWithLocking(keybinds: KeybindTemplate) = Lambda("Drive with locking mechanism")
-        .addRequirements(DrivetrainSubsystem)
-        .addExecute {
-            val contour = VisionSubsystem.getBestContour()
-            val driveResult = drive(
-                keybinds.movementX.state,
-                keybinds.movementY.state,
-                keybinds.movementRot.state
-            )
-
-            if (contour != null) {
-                if (true) {
-                    pController.kp = p
-                    val power = pController.calculate(contour.coords.first, 0.0)
-                    drive(power, 0.0, 0.0)
-                    GripperSubsystem.moveWristDegrees(contour.angle)
-                } else {
-                    Util.telemetry.addLine("ah bwoy")
-                }
-            }
-        }
-        .setFinish {
-            val contour = VisionSubsystem.cachedBestContour ?: return@setFinish false
-            basically(
-                contour.coords.first,
-                0.0,
-                0.1
-            )
-        }
-        .addEnd {
-            DrivetrainSubsystem.defaultCommand = driveByGamepad(keybinds)
-            RobotConfig.lockArm = false
-            RobotConfig.lockLift = false
-            RobotConfig.lockServos = false
-        }
-        .addInterruptible { true }
 
     private fun updateP() {
         val contour = VisionSubsystem.getBestContour()
@@ -116,7 +80,36 @@ object DrivetrainSubsystem : SubsystemCore() {
     fun driveByGamepad(keybinds: KeybindTemplate) = Lambda("Drive with controller")
         .addRequirements(DrivetrainSubsystem)
         .addExecute {
-            drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state)
+            if (!isLockedIn)
+                drive(keybinds.movementX.state, keybinds.movementY.state, keybinds.movementRot.state)
+            else {
+                val contour = VisionSubsystem.getBestContour()
+                val driveResult = drive(
+                    keybinds.movementX.state,
+                    keybinds.movementY.state,
+                    keybinds.movementRot.state
+                )
+
+                Util.telemetry.addData("locking in", "true")
+
+                if (contour != null) {
+                    if (!driveResult) {
+                        pController.kp = p
+                        val power = pController.calculate(contour.coords.first, 0.0)
+                        drive(power, 0.0, 0.0)
+                        GripperSubsystem.moveWristDegrees(contour.angle)
+                    } else {
+                        Util.telemetry.addLine("ah bwoy")
+                    }
+                }
+
+                if (VisionSubsystem.isAligned()) {
+                    isLockedIn = false
+                    RobotConfig.lockArm = false
+                    RobotConfig.lockLift = false
+                    RobotConfig.lockServos = false
+                }
+            }
         }
         .addInterruptible { true }
         .setFinish { false }
