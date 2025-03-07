@@ -59,7 +59,8 @@ class FinalPipeline : OpenCvPipeline() {
         val area: Double
     )
 
-    private val analyzedContours =
+    @Volatile
+    private var analyzedContours =
         mutableListOf<AnalyzedContour>() // This is a mutable list that stores instances of Analyzed Contour
 
     override fun processFrame(input: Mat): Mat {
@@ -385,6 +386,7 @@ class FinalPipeline : OpenCvPipeline() {
         return (realObjectSize * fEffective) / detectedSizePixels
     }
 
+    @Synchronized
     fun getAnalyzedContours(): List<AnalyzedContour> {
         return analyzedContours
     }
