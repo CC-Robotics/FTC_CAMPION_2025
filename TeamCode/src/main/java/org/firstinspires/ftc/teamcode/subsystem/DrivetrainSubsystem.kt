@@ -84,9 +84,9 @@ object DrivetrainSubsystem : SubsystemCore() {
                     if (!driveResult) {
                         pController.kp = p
                         Util.telemetry.addData("stuff", "doing")
-                        val power = pController.calculate(contour.coords.first, 0.0)
+                        val power = pController.calculate(contour.coords.second, 0.0)
                         drive(power, 0.0, 0.0)
-                        GripperSubsystem.moveWristDegrees(contour.angle)
+                        GripperSubsystem.moveWristDegrees(contour.angle).execute()
                     } else {
                         Util.telemetry.addLine("ah bwoy")
                     }
