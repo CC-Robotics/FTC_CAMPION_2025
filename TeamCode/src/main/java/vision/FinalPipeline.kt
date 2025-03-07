@@ -388,6 +388,6 @@ class FinalPipeline : OpenCvPipeline() {
 
     @Synchronized
     fun getAnalyzedContours(): List<AnalyzedContour> {
-        return analyzedContours
+        return analyzedContours.toList()
     }
 }
