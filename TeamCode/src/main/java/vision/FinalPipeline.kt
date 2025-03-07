@@ -256,7 +256,7 @@ class FinalPipeline : OpenCvPipeline() {
         Imgproc.putText(
             input,
             "Color: ${detectedColor}",
-            Point(cX.toDouble(), cY.toDouble() + 60),
+            Point(cX.toDouble(), cY.toDouble() + 55),
             Imgproc.FONT_HERSHEY_COMPLEX,
             0.7,
             Scalar(255.0, 255.0, 255.0)
