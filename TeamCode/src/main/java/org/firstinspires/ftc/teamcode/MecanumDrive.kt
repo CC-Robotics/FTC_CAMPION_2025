@@ -43,6 +43,7 @@ import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.VoltageSensor
@@ -66,7 +67,7 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d?) {
         var logoFacingDirection: RevHubOrientationOnRobot.LogoFacingDirection =
             RevHubOrientationOnRobot.LogoFacingDirection.UP
         var usbFacingDirection: RevHubOrientationOnRobot.UsbFacingDirection =
-            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+            RevHubOrientationOnRobot.UsbFacingDirection.LEFT
 
         // drive model parameters
         var inPerTick: Double = 1.0
@@ -246,18 +247,19 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d?) {
 
         // TODO: make sure your config has motors with these names (or change them)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        leftFront = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "leftFront")
-        leftBack = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "leftBack")
-        rightBack = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "rightBack")
-        rightFront = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "rightFront")
+        leftFront = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "fL")
+        leftBack = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "bL")
+        rightBack = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "bR")
+        rightFront = hardwareMap.get<DcMotorEx>(DcMotorEx::class.java, "fR")
 
-        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
-        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
-        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
-        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
+        leftFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        leftBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rightBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rightFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
 
         // TODO: reverse motor directions if needed
-        //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.direction = DcMotorSimple.Direction.REVERSE;
+        leftBack.direction = DcMotorSimple.Direction.REVERSE;
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html

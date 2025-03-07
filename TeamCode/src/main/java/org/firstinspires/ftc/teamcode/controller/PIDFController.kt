@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.controller
 
 import com.qualcomm.robotcore.hardware.PIDFCoefficients
-import org.firstinspires.ftc.teamcode.utils.round
+import org.firstinspires.ftc.teamcode.util.round
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.min
-
-data class PIDFValues(val p: Double, val i: Double, val d: Double, val f: Double)
 
 /*
  * How to Tune PIDF Values:
@@ -71,62 +70,23 @@ data class PIDFValues(val p: Double, val i: Double, val d: Double, val f: Double
  * int(0,t)[e(t')dt'] is the total error and e'(t) is the velocity error.
  */
 class PIDFController @JvmOverloads constructor(
-    var p: Double,
-    var i: Double,
-    var d: Double,
-    var f: Double,
+    var p: Double = 0.0,
+    var i: Double = 0.0,
+    var d: Double = 0.0,
+    var f: Double = 0.0,
     private var setPoint: Double = 0.0,
-    private var measuredValue: Double = 0.0
+    private var measuredValue: Double = 0.0,
+    private var useCosineFeedforward: Boolean = false,
+    ffOffset: Double = 0.0
 ) {
     private var minIntegral: Double
     private var maxIntegral = 1.0
+    private var ffOffset = ffOffset * (Math.PI / 180.0)
 
-    companion object {
-        private const val DEFAULT_INCREMENT_PROPORTIONAL = 0.001
-        private const val DEFAULT_INCREMENT_INTEGRAL = 0.001
-        private const val DEFAULT_INCREMENT_FEEDFORWARD = 0.0001
-        private const val DEFAULT_INCREMENT_DERIVATIVE = 0.0001
-        const val DEFAULT_INCREMENT = DEFAULT_INCREMENT_PROPORTIONAL
+    private val ticksInDegree = 700 / 180.0;
 
-        val nameMap = mapOf(
-            "p" to "Proportional",
-            "i" to "Integral",
-            "d" to "Derivative",
-            "f" to "Feedforward"
-        )
-
-        fun getPIDFValue(controller: PIDFController, which: String): Double {
-            return when (which) {
-                "p" -> controller.p
-                "i" -> controller.i
-                "d" -> controller.d
-                "f" -> controller.f
-                else -> throw IllegalArgumentException("Invalid value: $which")
-            }
-        }
-
-        fun adjustPIDF(
-            controller: PIDFController,
-            which: String,
-            multiplier: Double
-        ): Double {
-            return when (which) {
-                "p" -> controller.p.also {
-                    controller.p = (controller.p + (DEFAULT_INCREMENT_PROPORTIONAL * multiplier)).round(3)
-                }
-
-                "i" -> controller.i.also {
-                    controller.i = (controller.i + (DEFAULT_INCREMENT_INTEGRAL * multiplier)).round(3)
-                }
-                "d" -> controller.d.also {
-                    controller.d = (controller.d + (DEFAULT_INCREMENT_DERIVATIVE * multiplier)).round(4)
-                }
-                "f" -> controller.f.also {
-                    controller.f = (controller.f + (DEFAULT_INCREMENT_FEEDFORWARD * multiplier)).round(4)
-                }
-                else -> throw IllegalArgumentException("Invalid value: $which")
-            }
-        }
+    fun setFFOffset(ffOffset: Double) {
+        this.ffOffset = ffOffset * (Math.PI / 180.0)
     }
 
     /**
@@ -295,6 +255,11 @@ class PIDFController @JvmOverloads constructor(
         totalError = if (totalError < minIntegral) minIntegral else min(maxIntegral, totalError)
 
         // returns u(t)
+        if (useCosineFeedforward) {
+            val fm = cos(Math.toRadians(setPoint / ticksInDegree) + ffOffset)
+            return p * positionError + i * totalError + d * velocityError + f * fm * setPoint
+        }
+        val ff = cos(Math.toRadians(setPoint / ticksInDegree))
         return p * positionError + i * totalError + d * velocityError + f * setPoint
     }
 

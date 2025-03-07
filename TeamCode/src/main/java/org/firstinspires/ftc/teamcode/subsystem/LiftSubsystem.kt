@@ -1,20 +1,19 @@
 package org.firstinspires.ftc.teamcode.subsystem
 
-import com.acmerobotics.dashboard.FtcDashboard
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
-import com.qualcomm.robotcore.hardware.PIDFCoefficients
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
-import dev.frozenmilk.mercurial.Mercurial
+import dev.frozenmilk.mercurial.commands.Lambda
 import dev.frozenmilk.mercurial.subsystems.Subsystem
-import org.firstinspires.ftc.teamcode.Config
-import org.firstinspires.ftc.teamcode.controller.PIDFController
-import org.firstinspires.ftc.teamcode.utils.applySensitivity
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
+import org.firstinspires.ftc.teamcode.RobotConfig
+import org.firstinspires.ftc.teamcode.KeybindTemplate
 import org.firstinspires.ftc.teamcode.structures.PIDFSubsystem
+import org.firstinspires.ftc.teamcode.util.Util
+import org.firstinspires.ftc.teamcode.util.basically
+import org.firstinspires.ftc.teamcode.util.structures.Timer
 import java.lang.annotation.Inherited
 
 @com.acmerobotics.dashboard.config.Config
@@ -28,117 +27,103 @@ object LiftSubsystem : PIDFSubsystem() {
     override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and
             SingleAnnotation(Attach::class.java)
 
-    override val subsystemName = "Lift"
+    override val subsystemName = "Slide"
 
-    private val rightLift by subsystemCell { getHardware<DcMotorEx>("right_lift") }
-    private val leftLift by subsystemCell { getHardware<DcMotorEx>("left_lift") }
+    private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    private val defaultValues = PIDFCoefficients(0.004, 0.02, 0.0, 0.025)
+    override val sensitivity = 30
+    private const val TOLERANCE = 150
+    private const val MAX_VALUE = 3437
 
-    private var state = LiftState.LOW
+    @JvmField
+    var targetPositionTunable = 0
 
-    private const val MAX_POSITION = 1000
-    private lateinit var dashboardTelemetry: MultipleTelemetry
-    override val increment = 15
-    @JvmField var targetPositionTunable = 0
-    @JvmField var rightFocus = true
-//    val rangeOfMotion = Pair(-10, 70)
-//    val angle
-//        get() = lerp(
-//            rangeOfMotion.first,
-//            rangeOfMotion.second,
-//            position.toDouble() / maxPosition
-//        ).deg
+    @JvmField
+    var logTelemetry = true
+
+    fun reset() {
+        lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+    }
 
     override fun init(opMode: Wrapper) {
-        targetPosition = 0
-        targetPositionTunable = 0
-        pidfController.setPIDF(defaultValues)
-        dashboardTelemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
+        setTarget(0)
+        pidfController.setPIDF(0.01, 0.0, 0.0, 0.025)
 
-        rightLift.direction = DcMotorSimple.Direction.REVERSE
-
-        leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        lift.setCurrentAlert(8.4, CurrentUnit.AMPS)
     }
 
-    fun setPower(double: Double) {
-        leftLift.power = double
-        rightLift.power = double
+    override fun setTarget(position: Int) {
+        targetPositionTunable = position
+        targetPosition = position
     }
 
-    fun increment(pos: Double) {
-        targetPosition = targetPositionTunable
-        changePosition(
-            applySensitivity(pos, 1.0, 0.2)
-        )
-        clampPosition(0, MAX_POSITION)
-        targetPositionTunable = targetPosition
+    fun isAtTarget(): Boolean {
+        return basically(lift.currentPosition, targetPosition, TOLERANCE)
     }
 
-    fun update(resetting: Boolean): Boolean {
-        if (resetting) {
-            if (targetPositionTunable <= 0) {
-                setPower(0.0)
-                Thread.sleep(300)
-                leftLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-                rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-                leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-                rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-                targetPositionTunable = 0
-                targetPosition = 0
-                return true
+    fun dynamax() {
+
+    }
+
+    fun retract() = goTo(0)
+
+//    fun retract() = Lambda("Retract Slide")
+//        .addRequirements(LiftSubsystem)
+//        .addInit { lift.power = -1.0 }
+//        .setFinish { lift.isOverCurrent }
+//        .setEnd { interrupted ->
+//            lift.power = 0.0
+//            if (interrupted) {
+//                lift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+//                lift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+//            }
+//        }
+
+    fun goTo(target: Int): Lambda {
+        val timer = Timer()
+        return Lambda("Go to $subsystemName position")
+            .setExecute {
+                setTarget(target)
             }
-            return false
-        }
-        val motor = if (rightFocus) rightLift else leftLift
-        pidfController.setPIDF(Config.LIFT_PIDF)
+            .setFinish(LiftSubsystem::isAtTarget)
+    }
+
+    private fun updatePIDF() {
+        pidfController.setPIDF(RobotConfig.LINEAR_SLIDE_PIDF)
+        val power =
+            pidfController.calculate(lift.currentPosition.toDouble(), targetPosition.toDouble())
+        lift.power = power
+        Util.telemetry.addData("Setliftpower", power)
+    }
+
+    private fun normalizePosition(value: Double) {
         targetPosition = targetPositionTunable
-//        changePosition(
-//            applySensitivity(increment, 1.0, 0.2)
-//        )
-        clampPosition(0, MAX_POSITION)
+        incrementPosition(value)
+        clampPosition(0, MAX_VALUE)
         targetPositionTunable = targetPosition
-
-        val rightPower =
-            pidfController.calculate(motor.currentPosition.toDouble(), targetPosition.toDouble())
-
-        leftLift.power = rightPower
-        rightLift.power = rightPower
-
-        telemetry(rightPower)
-        return false
     }
 
-    fun setLiftState(state: LiftState) {
-        targetPosition = state.position
-        targetPositionTunable = state.position
-        this.state = state
-    }
+    fun update(keybinds: KeybindTemplate) = Lambda("Update Linear Slide")
+        .addRequirements(LiftSubsystem)
+        .setExecute {
+            normalizePosition(keybinds.slide.state)
+            if (RobotConfig.lockLift) {
+                lift.power = pidfController.f
+            } else {
+                updatePIDF()
+            }
+        }
+        .addInterruptible { true }
+        .setFinish { false }
 
-    fun telemetry(power: Double) {
-        dashboardTelemetry.addData("Left Lift Position", leftLift.currentPosition)
-        dashboardTelemetry.addData("Right Lift Position", rightLift.currentPosition)
-        dashboardTelemetry.addData("Target Position", targetPosition)
-
-        dashboardTelemetry.addData("Left Power", leftLift.power)
-        dashboardTelemetry.addData("Right Power", rightLift.power)
-
-        dashboardTelemetry.update()
-
-        telemetry.addData("Left Lift Real Position", leftLift.currentPosition)
-        telemetry.addData("Right Lift Real Position", rightLift.currentPosition)
-        telemetry.addData("$subsystemName Position", targetPosition)
-        telemetry.addData("Left Lift Power (real vs intended)", "${leftLift.power} vs $power")
-        telemetry.addData("Right Lift Power (real vs intended)", "${rightLift.power} vs $power")
-    }
-
-    enum class LiftState(val position: Int) {
-        LOW(0),
-        LOWMID(270),
-        MIDDLE(500),
-        HIGH(785)
+    override fun periodic(opMode: Wrapper) {
+        if (!logTelemetry) return
+        Util.telemetry.addData("current", lift.getCurrent(CurrentUnit.AMPS))
+        Util.telemetry.addData("Slide Position", lift.currentPosition)
+        Util.telemetry.addData("Slide Target Position", targetPosition)
+        Util.telemetry.update()
     }
 }

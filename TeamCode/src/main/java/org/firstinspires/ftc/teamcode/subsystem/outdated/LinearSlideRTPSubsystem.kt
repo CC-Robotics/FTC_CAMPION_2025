@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.subsystem
+package org.firstinspires.ftc.teamcode.subsystem.outdated
 
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
@@ -36,7 +35,7 @@ object LinearSlideRTPSubsystem : PIDFSubsystem() {
     }
 
     fun update(increment: Double) {
-        changePosition(increment)
+        incrementPosition(increment)
         clampPosition(0, MAX_POSITION)
         slide.targetPosition = targetPosition
         telemetry()
