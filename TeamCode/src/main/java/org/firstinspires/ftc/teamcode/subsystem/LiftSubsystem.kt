@@ -31,7 +31,7 @@ object LiftSubsystem : PIDFSubsystem() {
 
     private val lift by subsystemCell { getHardware<DcMotorEx>("slide") }
 
-    override val sensitivity = 15
+    override val sensitivity = 30
     private const val TOLERANCE = 150
     private const val MAX_VALUE = 3437
 
