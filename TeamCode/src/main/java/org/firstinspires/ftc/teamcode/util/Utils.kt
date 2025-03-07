@@ -91,8 +91,8 @@ fun degreeToWristPosition(degree: Double): Double {
     val minPos = 0.204
     val maxPos = 0.909
 
-    // Since 180 degrees corresponds to the full range, 360 degrees maps cyclically
-    val normalizedDegree = degree % 180
+    // Normalize the degree to avoid large wrap-arounds
+    val normalizedDegree = (degree % 180 + 180) % 180 // Ensures equivalent angles are mapped correctly
 
     // Invert the interpolation
     return lerp(maxPos, minPos, normalizedDegree / 180.0)

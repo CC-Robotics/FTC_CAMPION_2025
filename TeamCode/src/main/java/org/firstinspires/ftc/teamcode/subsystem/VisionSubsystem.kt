@@ -52,6 +52,10 @@ object VisionSubsystem : SubsystemCore() {
             contour.coords.first,
             0.0,
             0.1
+        ) && basically(
+            contour.coords.second,
+            0.0,
+            0.1
         )
     }
 
@@ -60,7 +64,7 @@ object VisionSubsystem : SubsystemCore() {
         camera.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
                 // Start the streaming session with desired resolution and orientation
-                camera.startStreaming(640, 240, OpenCvCameraRotation.UPRIGHT)
+                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT)
                 FtcDashboard.getInstance().startCameraStream(camera, 0.0);
 
 
