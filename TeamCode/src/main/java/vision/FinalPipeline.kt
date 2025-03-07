@@ -6,10 +6,8 @@ import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline
-import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.tan
 
 class FinalPipeline : OpenCvPipeline() {
 
@@ -36,19 +34,19 @@ class FinalPipeline : OpenCvPipeline() {
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
 
     // Working image buffers
-    private var ycrcbMat: Mat = Mat()
-    private var crMat: Mat = Mat()
-    private var cbMat: Mat = Mat()
+    private val ycrcbMat: Mat = Mat()
+    private val crMat: Mat = Mat()
+    private val cbMat: Mat = Mat()
 
-    private var blueThresholdMat: Mat = Mat()
-    private var redThresholdMat: Mat = Mat()
-    private var yellowThresholdMat: Mat = Mat()
+    private val blueThresholdMat: Mat = Mat()
+    private val redThresholdMat: Mat = Mat()
+    private val yellowThresholdMat: Mat = Mat()
 
-    private var morphedBlueThreshold: Mat = Mat()
-    private var morphedRedThreshold: Mat = Mat()
-    private var morphedYellowThreshold: Mat = Mat()
+    private val morphedBlueThreshold: Mat = Mat()
+    private val morphedRedThreshold: Mat = Mat()
+    private val morphedYellowThreshold: Mat = Mat()
 
-    private var contoursOnPlainImageMat: Mat = Mat()
+    private val contoursOnPlainImageMat: Mat = Mat()
 
     // A data class that holds information about a detected contour and has two properties rect and angle
     data class AnalyzedContour(
@@ -94,7 +92,6 @@ class FinalPipeline : OpenCvPipeline() {
         return Pair(normalizedX, normalizedY)
     }
 
-
     private fun findContours(input: Mat) {
         // Convert the input image to YCrCb color space
         Imgproc.cvtColor(input, ycrcbMat, Imgproc.COLOR_RGB2YCrCb)
@@ -115,77 +112,88 @@ class FinalPipeline : OpenCvPipeline() {
 
         // Additional morphological operations to close gaps caused by the white line
         val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
-        Imgproc.morphologyEx(
-            morphedBlueThreshold,
-            morphedBlueThreshold,
-            Imgproc.MORPH_CLOSE,
-            kernel
-        )
-        Imgproc.morphologyEx(morphedRedThreshold, morphedRedThreshold, Imgproc.MORPH_CLOSE, kernel)
-        Imgproc.morphologyEx(
-            morphedYellowThreshold,
-            morphedYellowThreshold,
-            Imgproc.MORPH_CLOSE,
-            kernel
-        )
+        try {
+            Imgproc.morphologyEx(
+                morphedBlueThreshold,
+                morphedBlueThreshold,
+                Imgproc.MORPH_CLOSE,
+                kernel
+            )
+            Imgproc.morphologyEx(morphedRedThreshold, morphedRedThreshold, Imgproc.MORPH_CLOSE, kernel)
+            Imgproc.morphologyEx(
+                morphedYellowThreshold,
+                morphedYellowThreshold,
+                Imgproc.MORPH_CLOSE,
+                kernel
+            )
 
-        // Find contours in the masks
-        val blueContoursList = ArrayList<MatOfPoint>()
-        Imgproc.findContours(
-            morphedBlueThreshold,
-            blueContoursList,
-            Mat(),
-            Imgproc.RETR_EXTERNAL,
-            Imgproc.CHAIN_APPROX_NONE
-        )
+            // Find contours in the masks
+            val blueContoursList = ArrayList<MatOfPoint>()
+            val blueHierarchy = Mat()
+            Imgproc.findContours(
+                morphedBlueThreshold,
+                blueContoursList,
+                blueHierarchy,
+                Imgproc.RETR_EXTERNAL,
+                Imgproc.CHAIN_APPROX_NONE
+            )
 
-        val redContoursList = ArrayList<MatOfPoint>()
-        Imgproc.findContours(
-            morphedRedThreshold,
-            redContoursList,
-            Mat(),
-            Imgproc.RETR_EXTERNAL,
-            Imgproc.CHAIN_APPROX_NONE
-        )
+            val redContoursList = ArrayList<MatOfPoint>()
+            val redHierarchy = Mat()
+            Imgproc.findContours(
+                morphedRedThreshold,
+                redContoursList,
+                redHierarchy,
+                Imgproc.RETR_EXTERNAL,
+                Imgproc.CHAIN_APPROX_NONE
+            )
 
-        val yellowContoursList = ArrayList<MatOfPoint>()
-        Imgproc.findContours(
-            morphedYellowThreshold,
-            yellowContoursList,
-            Mat(),
-            Imgproc.RETR_EXTERNAL,
-            Imgproc.CHAIN_APPROX_NONE
-        )
+            val yellowContoursList = ArrayList<MatOfPoint>()
+            val yellowHierarchy = Mat()
+            Imgproc.findContours(
+                morphedYellowThreshold,
+                yellowContoursList,
+                yellowHierarchy,
+                Imgproc.RETR_EXTERNAL,
+                Imgproc.CHAIN_APPROX_NONE
+            )
 
-        // Create a plain image for drawing contours
-        contoursOnPlainImageMat = Mat.zeros(input.size(), input.type())
+            // Create a plain image for drawing contours
+            input.copyTo(contoursOnPlainImageMat)
 
-        // Analyze and draw contours
-        for (contour in blueContoursList) {
-            analyzeContour(contour, input, RobotConfig.SampleColor.BLUE)
+            // Analyze and draw contours
+            for (contour in blueContoursList) {
+                try {
+                    analyzeContour(contour, input, RobotConfig.SampleColor.BLUE)
+                } finally {
+                    contour.release()
+                }
+            }
+
+            for (contour in redContoursList) {
+                try {
+                    analyzeContour(contour, input, RobotConfig.SampleColor.RED)
+                } finally {
+                    contour.release()
+                }
+            }
+
+            for (contour in yellowContoursList) {
+                try {
+                    analyzeContour(contour, input, RobotConfig.SampleColor.YELLOW)
+                } finally {
+                    contour.release()
+                }
+            }
+
+            // Release hierarchy mats
+            blueHierarchy.release()
+            redHierarchy.release()
+            yellowHierarchy.release()
+        } finally {
+            // Release the kernel
+            kernel.release()
         }
-
-        for (contour in redContoursList) {
-            analyzeContour(contour, input, RobotConfig.SampleColor.RED)
-        }
-
-        for (contour in yellowContoursList) {
-            analyzeContour(contour, input, RobotConfig.SampleColor.YELLOW)
-        }
-
-        // Release Mats to prevent memory leaks
-        releaseMats(
-            ycrcbMat,
-            crMat,
-            cbMat,
-            blueThresholdMat,
-            redThresholdMat,
-            yellowThresholdMat,
-            morphedBlueThreshold,
-            morphedRedThreshold,
-            morphedYellowThreshold,
-            contoursOnPlainImageMat
-        )
     }
 
     private fun morphMask(input: Mat, output: Mat) {
@@ -199,91 +207,102 @@ class FinalPipeline : OpenCvPipeline() {
         val points = contour.toArray()
         val contour2f = MatOfPoint2f(*points)
 
-        val rotatedRectFitToContour = Imgproc.minAreaRect(contour2f)
-        val area = Imgproc.contourArea(contour)
+        try {
+            val rotatedRectFitToContour = Imgproc.minAreaRect(contour2f)
+            val area = Imgproc.contourArea(contour)
 
-        // Area restriction: only process contours within the specified area range
-        if (area < 1500 || area > 70000) return
+            // Area restriction: only process contours within the specified area range
+            if (area < 1500 || area > 70000) return
 
-        drawRotatedRect(rotatedRectFitToContour, input, color)
-        drawRotatedRect(rotatedRectFitToContour, contoursOnPlainImageMat, color)
+            drawRotatedRect(rotatedRectFitToContour, input, color)
+            drawRotatedRect(rotatedRectFitToContour, contoursOnPlainImageMat, color)
 
-        var rotRectAngle = rotatedRectFitToContour.angle
-        if (rotatedRectFitToContour.size.width < rotatedRectFitToContour.size.height) {
-            rotRectAngle += 90.0
-        }
+            var rotRectAngle = rotatedRectFitToContour.angle
+            if (rotatedRectFitToContour.size.width < rotatedRectFitToContour.size.height) {
+                rotRectAngle += 90.0
+            }
 
-        val angle = -(rotRectAngle - 180)
-        drawTagText(rotatedRectFitToContour, "${Math.round(angle)} deg", input, color)
+            val angle = -(rotRectAngle - 180)
+            drawTagText(rotatedRectFitToContour, "${Math.round(angle)} deg", input, color)
 
-        val moments = Imgproc.moments(contour)
-        val m00 = moments.m00
-        if (m00 == 0.0) return
+            val moments = Imgproc.moments(contour)
+            val m00 = moments.m00
+            if (m00 == 0.0) return
 
+            val cX = (moments.m10 / m00).toInt()
+            val cY = (moments.m01 / m00).toInt()
 
-
-        val cX = (moments.m10 / m00).toInt()
-        val cY = (moments.m01 / m00).toInt()
-
-        val distanceRaw = estimateDistance(
-            Imgproc.minAreaRect(contour2f),
-            451.07,
-            8.6,
-            3.7,
-            cameraMatrix,
-            distCoeffs
-        )
-
-        val distanceCm = distanceRaw * cos(cameraMountingAngle)
-
-
-        // 2. Calculate Sample Positions
-        val (normalizedX, normalizedY) = getCoordinates(input, cX, cY)
-
-        Imgproc.putText(
-            input,
-            "Distance: $distanceCm cm",
-            Point(cX.toDouble(), cY.toDouble() + 20),
-            Imgproc.FONT_HERSHEY_COMPLEX,
-            1.0,
-            Scalar(255.0, 255.0, 255.0)
-        )
-        Imgproc.putText(input, "Norm X: ${normalizedX}",
-            Point(cX.toDouble(), cY.toDouble() + 20),
-            Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
-        Imgproc.putText(input, "Norm Y: ${normalizedY}",
-            Point(cX.toDouble(), cY.toDouble() + 40),
-            Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
-
-        val detectedColor = detectColor(input, cX, cY)
-        Imgproc.putText(
-            input,
-            "Color: ${detectedColor}",
-            Point(cX.toDouble(), cY.toDouble() + 55),
-            Imgproc.FONT_HERSHEY_COMPLEX,
-            0.7,
-            Scalar(255.0, 255.0, 255.0)
-        )
-
-        Imgproc.putText(
-            input,
-            "$area",
-            Point(cX.toDouble(), cY.toDouble() + 10),
-            Imgproc.FONT_HERSHEY_COMPLEX,
-            0.7,
-            Scalar(255.0, 255.0, 255.0)
-        )
-
-        analyzedContours.add(
-            AnalyzedContour(
-                rotatedRectFitToContour,
-                rotRectAngle,
-                detectedColor,
-                distanceCm,
-                Pair(normalizedX, normalizedY),
-                area
+            val distanceRaw = estimateDistance(
+                Imgproc.minAreaRect(contour2f),
+                451.07,
+                8.6,
+                3.7,
+                cameraMatrix,
+                distCoeffs
             )
-        )
+
+            val distanceCm = distanceRaw * cos(cameraMountingAngle)
+
+            // Calculate Sample Positions
+            val (normalizedX, normalizedY) = getCoordinates(input, cX, cY)
+
+            Imgproc.putText(
+                input,
+                "Distance: $distanceCm cm",
+                Point(cX.toDouble(), cY.toDouble() + 20),
+                Imgproc.FONT_HERSHEY_COMPLEX,
+                1.0,
+                Scalar(255.0, 255.0, 255.0)
+            )
+
+            Imgproc.putText(input, "Norm X: ${normalizedX}",
+                Point(cX.toDouble(), cY.toDouble() + 40),
+                Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
+
+            Imgproc.putText(input, "Norm Y: ${normalizedY}",
+                Point(cX.toDouble(), cY.toDouble() + 60),
+                Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
+
+            // Create a temporary Mat for color detection
+            val hsvMat = Mat()
+            try {
+                Imgproc.cvtColor(input, hsvMat, Imgproc.COLOR_RGB2HSV)
+                val detectedColor = detectColor(hsvMat, cX, cY)
+
+                Imgproc.putText(
+                    input,
+                    "Color: ${detectedColor}",
+                    Point(cX.toDouble(), cY.toDouble() + 80),
+                    Imgproc.FONT_HERSHEY_COMPLEX,
+                    0.7,
+                    Scalar(255.0, 255.0, 255.0)
+                )
+
+                Imgproc.putText(
+                    input,
+                    "$area",
+                    Point(cX.toDouble(), cY.toDouble() + 100),
+                    Imgproc.FONT_HERSHEY_COMPLEX,
+                    0.7,
+                    Scalar(255.0, 255.0, 255.0)
+                )
+
+                analyzedContours.add(
+                    AnalyzedContour(
+                        rotatedRectFitToContour,
+                        rotRectAngle,
+                        detectedColor,
+                        distanceCm,
+                        Pair(normalizedX, normalizedY),
+                        area
+                    )
+                )
+            } finally {
+                hsvMat.release()
+            }
+        } finally {
+            contour2f.release()
+        }
     }
 
     private fun drawRotatedRect(rect: RotatedRect, mat: Mat, color: RobotConfig.SampleColor) {
@@ -321,26 +340,15 @@ class FinalPipeline : OpenCvPipeline() {
         }
     }
 
-
-    private fun detectColor(input: Mat, cX: Int, cY: Int): RobotConfig.SampleColor {
-        val hsv = Mat()
-        Imgproc.cvtColor(input, hsv, Imgproc.COLOR_RGB2HSV)
+    private fun detectColor(hsv: Mat, cX: Int, cY: Int): RobotConfig.SampleColor {
         val pixel = hsv.get(cY, cX)
         val hue = pixel[0]
-        val saturation = pixel[1]
-        val value = pixel[2]
 
         return when (hue) {
             in 0.0..10.0, in 160.0..180.0 -> RobotConfig.SampleColor.RED
             in 20.0..30.0 -> RobotConfig.SampleColor.YELLOW
             in 100.0..130.0 -> RobotConfig.SampleColor.BLUE
             else -> RobotConfig.SampleColor.UNKNOWN
-        }
-    }
-
-    private fun releaseMats(vararg mats: Mat) {
-        for (mat in mats) {
-            mat.release()
         }
     }
 
@@ -351,22 +359,30 @@ class FinalPipeline : OpenCvPipeline() {
     ): RotatedRect {
         // Create input object points (center of the rotated rectangle)
         val objectPoints = MatOfPoint2f(Point(rect.center.x, rect.center.y))
-
-        // Prepare Mat for undistorted points
         val undistortedPoints = MatOfPoint2f()
 
-        // Prepare identity rotation and projection matrices (you can use them if needed)
-        val R = Mat.eye(3, 3, CvType.CV_64F)  // Identity rotation matrix
-        val P = Mat.eye(3, 4, CvType.CV_64F)  // Identity projection matrix
+        try {
+            // Prepare identity rotation and projection matrices
+            val R = Mat.eye(3, 3, CvType.CV_64F)
+            val P = Mat.eye(3, 4, CvType.CV_64F)
 
-        // Apply undistortion using the camera matrix and distortion coefficients
-        Calib3d.undistortPoints(objectPoints, undistortedPoints, cameraMatrix, distCoeffs)
+            try {
+                // Apply undistortion using the camera matrix and distortion coefficients
+                Calib3d.undistortPoints(objectPoints, undistortedPoints, cameraMatrix, distCoeffs, R, P)
 
-        // Retrieve the undistorted point (center) after transformation
-        val undistortedCenter = undistortedPoints.toArray()[0]
+                // Retrieve the undistorted point (center) after transformation
+                val undistortedCenter = undistortedPoints.toArray()[0]
 
-        // Return a new RotatedRect with the undistorted center, same size, and angle
-        return RotatedRect(undistortedCenter, rect.size, rect.angle)
+                // Return a new RotatedRect with the undistorted center, same size, and angle
+                return RotatedRect(undistortedCenter, rect.size, rect.angle)
+            } finally {
+                R.release()
+                P.release()
+            }
+        } finally {
+            objectPoints.release()
+            undistortedPoints.release()
+        }
     }
 
     fun estimateDistance(
@@ -395,4 +411,28 @@ class FinalPipeline : OpenCvPipeline() {
         }
     }
 
+    // Clean up resources when the pipeline is no longer needed
+    override fun onViewportTapped() {
+        // This method is called when the viewport is tapped
+        // Do any cleanup needed here
+        // I'm black
+    }
+
+    // Add a method to properly release all Mat resources
+    fun release() {
+        ycrcbMat.release()
+        crMat.release()
+        cbMat.release()
+        blueThresholdMat.release()
+        redThresholdMat.release()
+        yellowThresholdMat.release()
+        morphedBlueThreshold.release()
+        morphedRedThreshold.release()
+        morphedYellowThreshold.release()
+        contoursOnPlainImageMat.release()
+        erodeElement.release()
+        dilateElement.release()
+        cameraMatrix.release()
+        distCoeffs.release()
+    }
 }
