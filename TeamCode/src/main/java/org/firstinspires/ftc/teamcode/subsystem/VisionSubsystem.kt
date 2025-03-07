@@ -103,6 +103,7 @@ object VisionSubsystem : SubsystemCore() {
         val contours = getAnalyzedContours()
         if (contours.isEmpty()) return null
 
+
         val oppositeColor = if (RobotConfig.allianceColour == RobotConfig.SampleColor.RED) RobotConfig.SampleColor.BLUE else RobotConfig.SampleColor.RED
         val filteredContours = contours.filter { it.color != oppositeColor }
         if (filteredContours.isEmpty()) return null
