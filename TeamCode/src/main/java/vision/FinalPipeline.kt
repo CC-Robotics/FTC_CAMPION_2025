@@ -26,12 +26,32 @@ class FinalPipeline : OpenCvPipeline() {
         put(0, 0, -0.018522, 1.03979, 0.0, 0.0, -3.3171)
     }
 
+    // Initial thresholds (your current fixed values)
+    private var blueThreshold = 145.0  // Cb channel
+    private var redThreshold = 178.0   // Cr channel
+    private var yellowThreshold = 57.0 // Cb channel (inverse)
+
     // Camera Mounting Angle (in radians!  Positive if tilted *up*)
     private val cameraMountingAngle = 0.0 // Replace with your actual angle
 
     // Erosion and Dilation elements
     private val erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
     private val dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.5, 3.5))
+
+    // Adaptive thresholding parameters
+    private val adaptationRate = 0.1  // How fast thresholds adapt (0-1)
+    private val sampleInterval = 10   // Process adaptation every N frames
+    private var frameCount = 0
+
+    // Reference values - what we consider "normal" lighting
+    private val referenceCbMean = 128.0
+    private val referenceCrMean = 128.0
+
+    // Target ranges (useful for debug info)
+    private val targetBlueRange = Pair(135.0, 155.0)  // Cb range for blue
+    private val targetRedRange = Pair(168.0, 188.0)   // Cr range for red
+    private val targetYellowRange = Pair(35.0, 55.0)  // Cb range for yellow (inverse)
+
 
     // Working image buffers
     private val ycrcbMat: Mat = Mat()
@@ -46,7 +66,7 @@ class FinalPipeline : OpenCvPipeline() {
     private val morphedRedThreshold: Mat = Mat()
     private val morphedYellowThreshold: Mat = Mat()
 
-    private val contoursOnPlainImageMat: Mat = Mat()
+    private var contoursOnPlainImageMat: Mat = Mat()
 
     // A data class that holds information about a detected contour and has two properties rect and angle
     data class AnalyzedContour(
@@ -66,16 +86,109 @@ class FinalPipeline : OpenCvPipeline() {
 
     override fun processFrame(input: Mat): Mat {
         synchronized(analyzedContours) {
-            analyzedContours.clear() // Clear at the beginning of processing
-            findContours(input)
+            analyzedContours.clear()
 
-            // Log the number of contours found to telemetry or debug
-            val size = analyzedContours.size
-            Imgproc.putText(input, "Contours: $size", Point(10.0, 30.0),
-                Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, Scalar(255.0, 255.0, 255.0), 2)
+            // Convert to YCrCb color space
+            Imgproc.cvtColor(input, ycrcbMat, Imgproc.COLOR_RGB2YCrCb)
+
+            // Extract the Cb and Cr channels
+            Core.extractChannel(ycrcbMat, cbMat, 2) // Cb channel index is 2
+            Core.extractChannel(ycrcbMat, crMat, 1) // Cr channel index is 1
+
+            // Periodically update thresholds based on image statistics
+            if (frameCount % sampleInterval == 0) {
+                adaptThresholds()
+            }
+            frameCount++
+
+            // Draw debug info about current thresholds
+            Imgproc.putText(input, "Blue Cb: ${String.format("%.1f", blueThreshold)}",
+                Point(10.0, 30.0), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255.0, 255.0, 255.0), 1)
+            Imgproc.putText(input, "Red Cr: ${String.format("%.1f", redThreshold)}",
+                Point(10.0, 50.0), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255.0, 255.0, 255.0), 1)
+            Imgproc.putText(input, "Yellow Cb: ${String.format("%.1f", yellowThreshold)}",
+                Point(10.0, 70.0), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255.0, 255.0, 255.0), 1)
+
+            // Use adaptive thresholds for detection
+            findContoursWithAdaptiveThresholds(input)
+
+            // Draw contour count
+            Imgproc.putText(input, "Contours: ${analyzedContours.size}",
+                Point(10.0, 90.0), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255.0, 255.0, 255.0), 1)
         }
         return input
     }
+
+    private fun adaptThresholds() {
+        // Calculate current image statistics
+        val cbMean = Core.mean(cbMat).`val`[0]
+        val crMean = Core.mean(crMat).`val`[0]
+
+        // Calculate lighting shifts from reference values
+        val cbShift = cbMean - referenceCbMean
+        val crShift = crMean - referenceCrMean
+
+        // Adjust thresholds based on lighting shifts
+        // Blue detection (Cb channel)
+        blueThreshold = adjustThreshold(145.0, cbShift)  // 145 is your base threshold
+
+        // Red detection (Cr channel)
+        redThreshold = adjustThreshold(178.0, crShift)   // 178 is your base threshold
+
+        // Yellow detection (Cb channel, inverse)
+        yellowThreshold = adjustThreshold(57.0, cbShift) // 45 is your base threshold
+    }
+
+    private fun adjustThreshold(baseThreshold: Double, shift: Double): Double {
+        // Apply a portion of the shift to the threshold
+        return baseThreshold + (shift * adaptationRate)
+    }
+
+    private fun findContoursWithAdaptiveThresholds(input: Mat) {
+        // Apply thresholds with current adaptive values
+        Imgproc.threshold(cbMat, blueThresholdMat, blueThreshold, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.threshold(crMat, redThresholdMat, redThreshold, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.threshold(cbMat, yellowThresholdMat, yellowThreshold, 255.0, Imgproc.THRESH_BINARY_INV)
+
+
+        // Apply morphology to clean up the masks
+        morphMask(blueThresholdMat, morphedBlueThreshold)
+        morphMask(redThresholdMat, morphedRedThreshold)
+        morphMask(yellowThresholdMat, morphedYellowThreshold)
+
+        // Additional morphological operations to close gaps
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
+        Imgproc.morphologyEx(morphedBlueThreshold, morphedBlueThreshold, Imgproc.MORPH_CLOSE, kernel)
+        Imgproc.morphologyEx(morphedRedThreshold, morphedRedThreshold, Imgproc.MORPH_CLOSE, kernel)
+        Imgproc.morphologyEx(morphedYellowThreshold, morphedYellowThreshold, Imgproc.MORPH_CLOSE, kernel)
+
+        // Find contours in the masks
+        val blueContoursList = ArrayList<MatOfPoint>()
+        Imgproc.findContours(morphedBlueThreshold, blueContoursList, Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE)
+
+        val redContoursList = ArrayList<MatOfPoint>()
+        Imgproc.findContours(morphedRedThreshold, redContoursList, Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE)
+
+        val yellowContoursList = ArrayList<MatOfPoint>()
+        Imgproc.findContours(morphedYellowThreshold, yellowContoursList, Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE)
+
+        // Create a plain image for drawing contours
+        contoursOnPlainImageMat = Mat.zeros(input.size(), input.type())
+
+        // Analyze and draw contours
+        for (contour in blueContoursList) {
+            analyzeContour(contour, input, RobotConfig.SampleColor.BLUE)
+        }
+
+        for (contour in redContoursList) {
+            analyzeContour(contour, input, RobotConfig.SampleColor.RED)
+        }
+
+        for (contour in yellowContoursList) {
+            analyzeContour(contour, input, RobotConfig.SampleColor.YELLOW)
+        }
+    }
+
 
     private fun getCoordinates(input: Mat, cX: Int, cY: Int): Pair<Double, Double> {
         val width = input.width().toDouble()
