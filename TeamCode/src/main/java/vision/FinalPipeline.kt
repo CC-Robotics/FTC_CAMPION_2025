@@ -6,8 +6,10 @@ import org.opencv.calib3d.Calib3d
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvPipeline
+import kotlin.math.atan
 import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.tan
 
 class FinalPipeline : OpenCvPipeline() {
 
@@ -133,7 +135,7 @@ class FinalPipeline : OpenCvPipeline() {
         blueThreshold = adjustThreshold(145.0, cbShift)  // 145 is your base threshold
 
         // Red detection (Cr channel)
-        redThreshold = adjustThreshold(178.0, crShift)   // 178 is your base threshold
+        redThreshold = adjustThreshold(173.0, crShift)   // 178 is your base threshold
 
         // Yellow detection (Cb channel, inverse)
         yellowThreshold = adjustThreshold(57.0, cbShift) // 45 is your base threshold
@@ -316,6 +318,19 @@ class FinalPipeline : OpenCvPipeline() {
         Imgproc.dilate(output, output, dilateElement)
     }
 
+    private fun getSamplePositions(offsetX: Double, offsetY: Double, distance: Double): Pair<Double, Double> {
+
+
+        val angleX = atan(offsetX / fx)
+        val angleY = atan(offsetY / fx)
+
+        // 5. Calculate Horizontal Offset (Requires Distance)
+        val sampleX = distance * tan(angleX)
+        val sampleY = distance * tan(angleY)
+        return Pair(sampleX, sampleY)
+
+    }
+
     private fun analyzeContour(contour: MatOfPoint, input: Mat, color: RobotConfig.SampleColor) {
         val points = contour.toArray()
         val contour2f = MatOfPoint2f(*points)
@@ -358,6 +373,7 @@ class FinalPipeline : OpenCvPipeline() {
 
             // Calculate Sample Positions
             val (normalizedX, normalizedY) = getCoordinates(input, cX, cY)
+            val (sampleX, sampleY) = getSamplePositions(cX.toDouble(), cY.toDouble(), distanceCm)
 
             Imgproc.putText(
                 input,
@@ -368,11 +384,11 @@ class FinalPipeline : OpenCvPipeline() {
                 Scalar(255.0, 255.0, 255.0)
             )
 
-            Imgproc.putText(input, "Norm X: ${normalizedX}",
+            Imgproc.putText(input, "Norm X: ${sampleX}",
                 Point(cX.toDouble(), cY.toDouble() + 40),
                 Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
 
-            Imgproc.putText(input, "Norm Y: ${normalizedY}",
+            Imgproc.putText(input, "Norm Y: ${sampleY}",
                 Point(cX.toDouble(), cY.toDouble() + 60),
                 Imgproc.FONT_HERSHEY_COMPLEX, 0.7, Scalar(255.0, 255.0, 255.0))
 
@@ -406,7 +422,7 @@ class FinalPipeline : OpenCvPipeline() {
                         rotRectAngle,
                         detectedColor,
                         distanceCm,
-                        Pair(normalizedX, normalizedY),
+                        Pair(sampleX, sampleY),
                         area
                     )
                 )
